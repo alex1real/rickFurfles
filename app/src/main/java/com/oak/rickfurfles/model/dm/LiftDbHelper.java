@@ -36,6 +36,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase){
         this.createShiftTable(sqLiteDatabase);
+        this.createLiftTable(sqLiteDatabase);
         //ToDo: call all create*Table methods
     }
 
@@ -44,6 +45,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         // Note that this only fired if you change the version number of your database
         // It does NOT depend on the version number of your application
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.ShiftEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.LiftEntry.TABLE_NAME);
         //ToDo: Drop all created tables
 
         onCreate(sqLiteDatabase);
@@ -66,7 +68,27 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);
     }
 
-    //ToDo: Implement createLiftTable method
+    private void createLiftTable(SQLiteDatabase sqLiteDatabase){
+        final String SQL_CREATE_LIFT_TABLE =
+                "CREATE TABLE " + LiftContract.LiftEntry.TABLE_NAME
+                + "("
+                + LiftContract.LiftEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                + LiftContract.LiftEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
+                + LiftContract.LiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL, "
+                + LiftContract.LiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
+                + LiftContract.LiftEntry.COLUMN_END_DT + " INTEGER, "
+                + LiftContract.LiftEntry.COLUMN_PRICE + " REAL NOT NULL, "
+                + LiftContract.LiftEntry.COLUMN_PASSENGERS_NUM + " INTEGER, "
+                + LiftContract.LiftEntry.COLUMN_SHIFT_ID + " INTEGER, "
+                + "CONSTRAINT 'FK_LIFT_SHIFT' FOREIGN KEY ("
+                + LiftContract.LiftEntry.COLUMN_SHIFT_ID + ") "
+                + "REFERENCES '" + LiftContract.ShiftEntry.TABLE_NAME + "' ("
+                + LiftContract.ShiftEntry._ID + ") ON DELETE No Action ON UPDATE No Action"
+                + ");";
+
+        sqLiteDatabase.execSQL(SQL_CREATE_LIFT_TABLE);
+    }
+
     //ToDo: Implement createAddressTable method
     //ToDo: Implement createLiftAddressTable method
     //Todo: Implement createExpenseTable method

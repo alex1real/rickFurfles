@@ -59,7 +59,7 @@ public class LiftContract {
     /*****************
      * Inner Classes *
      ****************/
-    public static final class ShiftEntry implements BaseColumns{
+    public static final class ShiftEntry implements BaseColumns, LiftDbBaseColumns{
         /*************
          * Constants *
          ************/
@@ -70,12 +70,10 @@ public class LiftContract {
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_SHIFT).build();
 
         public static final String CONTENT_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/"
-                + PATH_SHIFT;
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_SHIFT;
 
         public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/"
-                + PATH_SHIFT;
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_SHIFT;
 
         /*********
          * Table *
@@ -85,12 +83,6 @@ public class LiftContract {
         /***********
          * Columns *
          **********/
-        //It stores the date when the record was created
-        public static final String COLUMN_CREATED = "CREATED";
-
-        //It stores the date when the record was last modified
-        public static final String COLUMN_LAST_UPD = "LAST_UPD";
-
         //It stores the date when the shift has started
         public static final String COLUMN_START_DT = "START_DT";
 
@@ -119,7 +111,61 @@ public class LiftContract {
         }
     }
 
-    //ToDo: Implement LiftEntry inner class
+
+    public static final class LiftEntry implements BaseColumns, LiftDbBaseColumns{
+        /*************
+         * Constants *
+         ************/
+        /*******
+         * URI *
+         ******/
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_LIFT).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_LIFT;
+
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_LIFT;
+
+        /*********
+         * Table *
+         ********/
+        public static final String TABLE_NAME = "LIFT";
+
+        /**********
+         * Column *
+         *********/
+        // It stores the Lift's start time
+        public static final String COLUMN_START_DT = "START_DT";
+
+        // It stores the Lift's end time
+        public static final String COLUMN_END_DT = "END_DT";
+
+        //It stores the Lift's price
+        public static final String COLUMN_PRICE = "PRICE";
+
+        // It stores the Lift's number of passengers
+        public static final String COLUMN_PASSENGERS_NUM = "PASSENGERS_NUM";
+
+        // It stores the Shift's foreign key
+        public static final String COLUMN_SHIFT_ID = "SHIFT_ID";
+
+
+        /******************
+         * Public Methods *
+         *****************/
+        /****************
+         * Uri Builders *
+         ***************/
+        public static Uri buildLiftUri(long id){
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildLiftByShiftUri(long shiftId){
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(shiftId)).build();
+        }
+    }
     //ToDo: Implement AddressEntry inner class
     //ToDo: Implement LiftAddressEntry inner class
     //ToDo: Implement ExpenseEntry inner class
