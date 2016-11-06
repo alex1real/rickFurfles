@@ -166,7 +166,61 @@ public class LiftContract {
             return CONTENT_URI.buildUpon().appendPath(Long.toString(shiftId)).build();
         }
     }
-    //ToDo: Implement AddressEntry inner class
+
+    // Address Catalog
+    public static final class AddressEntry implements BaseColumns, LiftDbBaseColumns{
+        /*************
+         * Constants *
+         ************/
+        /*******
+         * URI *
+         ******/
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_ADDR).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ADDR;
+
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ADDR;
+
+        /*********
+         * Table *
+         ********/
+        public static final String TABLE_NAME = "ADDR";
+
+        /***********
+         * Columns *
+         **********/
+        // It stores the Place Name
+        public static final String COLUMN_PLACE = "PLACE";
+
+        // It stores the Neighborhood name
+        public static final String COLUMN_NEIGHBORHOOD = "NEIGHBORHOOD";
+
+        // It stores the City name
+        public static final String COLUMN_CITY = "CITY";
+
+        // It stores the State name
+        public static final String COLUMN_STATE = "STATE";
+
+        // It stores the Country name
+        public static final String COLUMN_COUNTRY = "COUNTRY";
+
+        // It stores the zipcode
+        public static final String COLUMN_ZIPCODE = "ZIPCODE";
+
+        /******************
+         * Public Methods *
+         *****************/
+        /****************
+         * URI Builders *
+         ***************/
+        public static Uri buildAddressUri(long id){
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
     //ToDo: Implement LiftAddressEntry inner class
     //ToDo: Implement ExpenseEntry inner class
 }

@@ -37,6 +37,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase){
         this.createShiftTable(sqLiteDatabase);
         this.createLiftTable(sqLiteDatabase);
+        this.createAddressTable(sqLiteDatabase);
         //ToDo: call all create*Table methods
     }
 
@@ -46,6 +47,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         // It does NOT depend on the version number of your application
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.ShiftEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.LiftEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.AddressEntry.TABLE_NAME);
         //ToDo: Drop all created tables
 
         onCreate(sqLiteDatabase);
@@ -54,18 +56,28 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     /*******************
      * Private Methods *
      ******************/
-    private void createShiftTable(SQLiteDatabase sqLiteDatabase){
-        final String SQL_CREATE_SHIFT_TABLE =
-                "CREATE TABLE " + LiftContract.ShiftEntry.TABLE_NAME
+    private void createAddressTable(SQLiteDatabase sqLiteDatabase){
+        final String SQL_CREATE_ADDR_TABLE =
+                "CREATE TABLE " + LiftContract.AddressEntry.TABLE_NAME
                 + " ("
-                + LiftContract.ShiftEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-                + LiftContract.ShiftEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
-                + LiftContract.ShiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL,"
-                + LiftContract.ShiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
-                + LiftContract.ShiftEntry.COLUMN_END_DT + " INTEGER NOT NULL "
+                + LiftContract.AddressEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                + LiftContract.AddressEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
+                + LiftContract.AddressEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL, "
+                + LiftContract.AddressEntry.COLUMN_PLACE + " TEXT NOT NULL, "
+                + LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD + " TEXT, "
+                + LiftContract.AddressEntry.COLUMN_CITY + " TEXT NOT NULL, "
+                + LiftContract.AddressEntry.COLUMN_STATE + " TEXT NOT NULL, "
+                + LiftContract.AddressEntry.COLUMN_COUNTRY + " TEXT NOT NULL, "
+                + LiftContract.AddressEntry.COLUMN_ZIPCODE + " TEXT, "
+                + "CONSTRAINT 'UN_KEY' UNIQUE ("
+                + LiftContract.AddressEntry.COLUMN_PLACE + ","
+                + LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD + ","
+                + LiftContract.AddressEntry.COLUMN_CITY + ","
+                + LiftContract.AddressEntry.COLUMN_STATE + ','
+                + LiftContract.AddressEntry.COLUMN_COUNTRY + ")"
                 + ");";
 
-        sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_ADDR_TABLE);
     }
 
     private void createLiftTable(SQLiteDatabase sqLiteDatabase){
@@ -89,7 +101,20 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_LIFT_TABLE);
     }
 
-    //ToDo: Implement createAddressTable method
+    private void createShiftTable(SQLiteDatabase sqLiteDatabase){
+        final String SQL_CREATE_SHIFT_TABLE =
+                "CREATE TABLE " + LiftContract.ShiftEntry.TABLE_NAME
+                        + " ("
+                        + LiftContract.ShiftEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                        + LiftContract.ShiftEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
+                        + LiftContract.ShiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL,"
+                        + LiftContract.ShiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
+                        + LiftContract.ShiftEntry.COLUMN_END_DT + " INTEGER NOT NULL "
+                        + ");";
+
+        sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);
+    }
+
     //ToDo: Implement createLiftAddressTable method
     //Todo: Implement createExpenseTable method
 
