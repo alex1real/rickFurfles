@@ -49,6 +49,7 @@ public class TestDb {
         HashSet<String> tableNamesHashSet = new HashSet<>();
         tableNamesHashSet.add(LiftContract.ShiftEntry.TABLE_NAME);
         tableNamesHashSet.add(LiftContract.LiftEntry.TABLE_NAME);
+        tableNamesHashSet.add(LiftContract.AddressEntry.TABLE_NAME);
 
 
         Context appContext = InstrumentationRegistry.getTargetContext();
@@ -76,6 +77,36 @@ public class TestDb {
 
         cursor.close();
 
+    }
+
+    //ToDo: Implement insertAddress
+    @Test
+    public void insertAddress(){
+        // Open db (Create if it doesn't exist)
+        SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
+
+        // Create an Address
+
+        ContentValues addressValues = this.getSampleAddressValues();
+
+        long addressId = sqLiteDatabase.insert(LiftContract.AddressEntry.TABLE_NAME,
+                null,
+                addressValues);
+
+        addressValues.put(LiftContract.AddressEntry._ID, addressId);
+
+        // Check if the Address was created
+        Assert.assertTrue("InsertAddress Error: Failure to insert address.", addressId != -1);
+
+        // Query all Address
+        Cursor cursor = sqLiteDatabase.rawQuery("select * from " + LiftContract.AddressEntry.TABLE_NAME,
+                null);
+
+        // Check if the Address is present in the cursor
+        Assert.assertTrue("insertAddress Error: Inconsistencies have been found beteween the cursor and expected values",
+                TestUtilities.isValidCursor(cursor, addressValues));
+
+        cursor.close();
     }
 
     /*
@@ -174,6 +205,36 @@ public class TestDb {
         Context appContext = InstrumentationRegistry.getTargetContext();
 
         appContext.deleteDatabase(LiftDbHelper.DATABASE_NAME);
+    }
+
+    private ContentValues getAddressValues(String place,
+                                           String neighborhood,
+                                           String city,
+                                           String state,
+                                           String country,
+                                           String zipcode){
+        Calendar creationDate = new GregorianCalendar();
+
+        ContentValues addressValues = new ContentValues();
+        addressValues.put(LiftContract.AddressEntry.COLUMN_CREATED, creationDate.getTimeInMillis());
+        addressValues.put(LiftContract.AddressEntry.COLUMN_LAST_UPD, creationDate.getTimeInMillis());
+        addressValues.put(LiftContract.AddressEntry.COLUMN_PLACE, place);
+        addressValues.put(LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD, neighborhood);
+        addressValues.put(LiftContract.AddressEntry.COLUMN_CITY, city);
+        addressValues.put(LiftContract.AddressEntry.COLUMN_STATE, state);
+        addressValues.put(LiftContract.AddressEntry.COLUMN_COUNTRY, country);
+        addressValues.put(LiftContract.AddressEntry.COLUMN_ZIPCODE, zipcode);
+
+        return addressValues;
+    }
+
+    private ContentValues getSampleAddressValues(){
+        return this.getAddressValues("Camden Street",
+                "Saint Kevin's",
+                "Dublin",
+                "Dublin",
+                "Ireland",
+                "Dublin 2");
     }
 
     /*
