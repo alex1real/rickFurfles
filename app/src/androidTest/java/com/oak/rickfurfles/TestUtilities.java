@@ -46,6 +46,7 @@ public class TestUtilities {
                 String expectedColumnName;
                 String expectedValue;
                 String cursorValue;
+                double cursorDoubleValue;
                 for(Map.Entry<String, Object> expectedEntry : expectedSet){
                     expectedColumnName = expectedEntry.getKey();
 
@@ -54,7 +55,20 @@ public class TestUtilities {
                             cursorColumnIndex == -1);
 
                     expectedValue = expectedEntry.getValue().toString();
-                    cursorValue = cursor.getString(cursorColumnIndex);
+
+                    int columnType = cursor.getType(cursorColumnIndex);
+                    switch (columnType) {
+                        case Cursor.FIELD_TYPE_FLOAT:
+                            cursorDoubleValue = cursor.getDouble(cursorColumnIndex);
+                            cursorValue = Double.toString(cursorDoubleValue);
+
+                            break;
+                        default:
+                            cursorValue = cursor.getString(cursorColumnIndex);
+
+                            break;
+                    }
+
 
                     //ToDo: Test if when the error msg is fired the process stops or keep testing
                     //      If it stops, the return for this method must be relocated.
