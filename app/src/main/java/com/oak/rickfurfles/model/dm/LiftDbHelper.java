@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 /**
  * Created by Alex on 26/10/2016.
+ * This Class:
+ *   It creates the Database or just open it, based on the Lift Contract
  */
 
 public class LiftDbHelper extends SQLiteOpenHelper {
@@ -39,7 +41,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         this.createLiftTable(sqLiteDatabase);
         this.createAddressTable(sqLiteDatabase);
         this.createLiftAddressTable(sqLiteDatabase);
-        //ToDo: call all create*Table methods
+        this.createExpenseTable(sqLiteDatabase);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.LiftEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.AddressEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.LiftAddressEntry.TABLE_NAME);
-        //ToDo: Drop all created tables
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.ExpenseEntry.TABLE_NAME);
 
         onCreate(sqLiteDatabase);
     }
@@ -82,6 +84,29 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_ADDR_TABLE);
     }
 
+    private void createExpenseTable(SQLiteDatabase sqLiteDatabase){
+        final String SQL_CREATE_EXPENSE_TABLE =
+               "CREATE TABLE " + LiftContract.ExpenseEntry.TABLE_NAME
+                + " ("
+                + LiftContract.ExpenseEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                + LiftContract.ExpenseEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
+                + LiftContract.ExpenseEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL, "
+                + LiftContract.ExpenseEntry.COLUMN_NAME + " TEXT NOT NULL, "
+                + LiftContract.ExpenseEntry.COLUMN_DATE + " INTEGER NOT NULL, "
+                + LiftContract.ExpenseEntry.COLUMN_VALUE + " REAL NOT NULL, "
+                + LiftContract.ExpenseEntry.COLUMN_SHIFT_ID + " INTEGER, "
+                + "CONSTRAINT 'FK_EXPENSE_SHIFT' FOREIGN KEY ('"
+                + LiftContract.ExpenseEntry.COLUMN_SHIFT_ID
+                + "') REFERENCES '"
+                + LiftContract.ShiftEntry.TABLE_NAME
+                + "' ('"
+                + LiftContract.ShiftEntry._ID
+                + "') ON DELETE No Action ON UPDATE No Action"
+                + ");";
+
+        sqLiteDatabase.execSQL(SQL_CREATE_EXPENSE_TABLE);
+    }
+
     private void createLiftTable(SQLiteDatabase sqLiteDatabase){
         final String SQL_CREATE_LIFT_TABLE =
                 "CREATE TABLE " + LiftContract.LiftEntry.TABLE_NAME
@@ -101,20 +126,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 + ");";
 
         sqLiteDatabase.execSQL(SQL_CREATE_LIFT_TABLE);
-    }
-
-    private void createShiftTable(SQLiteDatabase sqLiteDatabase){
-        final String SQL_CREATE_SHIFT_TABLE =
-                "CREATE TABLE " + LiftContract.ShiftEntry.TABLE_NAME
-                        + " ("
-                        + LiftContract.ShiftEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-                        + LiftContract.ShiftEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
-                        + LiftContract.ShiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL,"
-                        + LiftContract.ShiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
-                        + LiftContract.ShiftEntry.COLUMN_END_DT + " INTEGER NOT NULL "
-                        + ");";
-
-        sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);
     }
 
     private void createLiftAddressTable(SQLiteDatabase sqLiteDatabase){
@@ -154,6 +165,18 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_LIFT_ADDR_TABLE);
     }
 
-    //Todo: Implement createExpenseTable method
+    private void createShiftTable(SQLiteDatabase sqLiteDatabase){
+        final String SQL_CREATE_SHIFT_TABLE =
+                "CREATE TABLE " + LiftContract.ShiftEntry.TABLE_NAME
+                        + " ("
+                        + LiftContract.ShiftEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                        + LiftContract.ShiftEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
+                        + LiftContract.ShiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL,"
+                        + LiftContract.ShiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
+                        + LiftContract.ShiftEntry.COLUMN_END_DT + " INTEGER NOT NULL "
+                        + ");";
+
+        sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);
+    }
 
 }

@@ -9,6 +9,9 @@ import java.util.Calendar;
 
 /**
  * Created by Alex on 26/10/2016.
+ * This class:
+ *    It has the definition for all tables in the db.
+ *    It has all Uri Builders.
  */
 
 public class LiftContract {
@@ -110,6 +113,61 @@ public class LiftContract {
          ***************/
         public static Uri buildAddressUri(long id){
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
+
+    //ToDo: Implement ExpenseEntry inner class
+    public static final class ExpenseEntry implements BaseColumns, LiftDbBaseColumns{
+        /*************
+         * Constants *
+         ************/
+        /********
+         * URIs *
+         *******/
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_EXPENSE).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/"+ PATH_EXPENSE;
+
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_EXPENSE;
+
+        /*********
+         * Table *
+         ********/
+        public static final String TABLE_NAME = "EXPENSE";
+
+        /***********
+         * Columns *
+         **********/
+        // It stores the name of the expense
+        public static final String COLUMN_NAME = "NAME";
+
+        // It stores the date when the expense happened
+        public static final String COLUMN_DATE = "DATE";
+
+        // The value of the expense in currency.
+        public static final String COLUMN_VALUE = "VALUE";
+
+        // Shift Foreign Key
+        public static final String COLUMN_SHIFT_ID = "SHIFT_ID";
+
+        /******************
+         * Public Methods *
+         *****************/
+        /****************
+         * Uri Builders *
+         ***************/
+        public static Uri buildExpenseUri(long expenseId){
+            return ContentUris.withAppendedId(CONTENT_URI, expenseId);
+        }
+
+        public static Uri buildExpenseShiftUri(long shiftId){
+            return CONTENT_URI.buildUpon()
+                    .appendPath(PATH_SHIFT).appendPath(Long.toString(shiftId))
+                    .build();
         }
     }
 
@@ -287,6 +345,4 @@ public class LiftContract {
         }
     }
 
-
-    //ToDo: Implement ExpenseEntry inner class
 }
