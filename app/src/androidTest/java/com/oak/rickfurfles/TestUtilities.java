@@ -3,7 +3,7 @@ package com.oak.rickfurfles;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.oak.rickfurfles.model.dm.LiftContract;
+import com.oak.rickfurfles.model.db.LiftContract;
 
 import junit.framework.Assert;
 

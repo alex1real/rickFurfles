@@ -7,8 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.oak.rickfurfles.model.dm.LiftContract;
-import com.oak.rickfurfles.model.dm.LiftDbHelper;
+import com.oak.rickfurfles.model.db.LiftContract;
+import com.oak.rickfurfles.model.db.LiftDbHelper;
 
 import junit.framework.Assert;
 

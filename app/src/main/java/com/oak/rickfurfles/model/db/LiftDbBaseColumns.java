@@ -1,4 +1,4 @@
-package com.oak.rickfurfles.model.dm;
+package com.oak.rickfurfles.model.db;
 
 /**
  * Created by Alex on 30/10/2016.

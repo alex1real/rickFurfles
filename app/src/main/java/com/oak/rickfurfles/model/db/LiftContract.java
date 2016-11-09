@@ -1,4 +1,4 @@
-package com.oak.rickfurfles.model.dm;
+package com.oak.rickfurfles.model.db;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
