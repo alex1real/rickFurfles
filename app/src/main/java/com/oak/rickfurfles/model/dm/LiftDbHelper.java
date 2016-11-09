@@ -38,6 +38,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         this.createShiftTable(sqLiteDatabase);
         this.createLiftTable(sqLiteDatabase);
         this.createAddressTable(sqLiteDatabase);
+        this.createLiftAddressTable(sqLiteDatabase);
         //ToDo: call all create*Table methods
     }
 
@@ -48,6 +49,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.ShiftEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.LiftEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.AddressEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + LiftContract.LiftAddressEntry.TABLE_NAME);
         //ToDo: Drop all created tables
 
         onCreate(sqLiteDatabase);
@@ -115,7 +117,43 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);
     }
 
-    //ToDo: Implement createLiftAddressTable method
+    private void createLiftAddressTable(SQLiteDatabase sqLiteDatabase){
+        final String SQL_CREATE_LIFT_ADDR_TABLE =
+                "CREATE TABLE " + LiftContract.LiftAddressEntry.TABLE_NAME
+                + " ("
+                + LiftContract.LiftAddressEntry._ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                + LiftContract.LiftAddressEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
+                + LiftContract.LiftAddressEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL, "
+                + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " INTEGER NOT NULL, "
+                + LiftContract.LiftAddressEntry.COLUMN_ADDR_ID + " INTEGER NOT NULL, "
+                + LiftContract.LiftAddressEntry.COLUMN_TYPE + " TEXT NOT NULL, "
+                + LiftContract.LiftAddressEntry.COLUMN_NUM + " INTEGER, "
+                + LiftContract.LiftAddressEntry.COLUMN_LAT + " REAL, "
+                + LiftContract.LiftAddressEntry.COLUMN_LON + " REAL, "
+                + LiftContract.LiftAddressEntry.COLUMN_POI + " TEXT, "
+                + "CONSTRAINT 'FK_LIFT_ADDR_ADDR' FOREIGN KEY ('"
+                + LiftContract.LiftAddressEntry.COLUMN_ADDR_ID
+                + "') REFERENCES '"
+                + LiftContract.AddressEntry.TABLE_NAME
+                + "' ('"
+                + LiftContract.AddressEntry._ID
+                + "') ON DELETE No Action ON UPDATE No Action, "
+                + "CONSTRAINT 'FK_LIFT_ADDR_LIFT' FOREIGN KEY ('"
+                + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID
+                + "') REFERENCES '"
+                + LiftContract.LiftEntry.TABLE_NAME
+                + "' ('"
+                + LiftContract.LiftEntry._ID
+                + "') ON DELETE Cascade ON UPDATE No Action, "
+                + "CONSTRAINT 'UN_KEY' UNIQUE ('"
+                + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + "','"
+                + LiftContract.LiftAddressEntry.COLUMN_ADDR_ID + "','"
+                + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                + "'));";
+
+        sqLiteDatabase.execSQL(SQL_CREATE_LIFT_ADDR_TABLE);
+    }
+
     //Todo: Implement createExpenseTable method
 
 }

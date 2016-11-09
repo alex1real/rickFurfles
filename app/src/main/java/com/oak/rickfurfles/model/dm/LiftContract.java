@@ -59,55 +59,57 @@ public class LiftContract {
     /*****************
      * Inner Classes *
      ****************/
-    public static final class ShiftEntry implements BaseColumns, LiftDbBaseColumns{
+    // Address Catalog
+    public static final class AddressEntry implements BaseColumns, LiftDbBaseColumns{
         /*************
          * Constants *
          ************/
         /*******
-         * Uri *
+         * URI *
          ******/
         public static final Uri CONTENT_URI =
-                BASE_CONTENT_URI.buildUpon().appendPath(PATH_SHIFT).build();
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_ADDR).build();
 
         public static final String CONTENT_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_SHIFT;
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ADDR;
 
         public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_SHIFT;
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ADDR;
 
         /*********
          * Table *
          ********/
-        public static final String TABLE_NAME = "SHIFT";
+        public static final String TABLE_NAME = "ADDR";
 
         /***********
          * Columns *
          **********/
-        //It stores the date when the shift has started
-        public static final String COLUMN_START_DT = "START_DT";
+        // It stores the Place Name
+        public static final String COLUMN_PLACE = "PLACE";
 
-        //It stores the date when the shift has been finished
-        public static final String COLUMN_END_DT = "END_DT";
+        // It stores the Neighborhood name
+        public static final String COLUMN_NEIGHBORHOOD = "NEIGHBORHOOD";
+
+        // It stores the City name
+        public static final String COLUMN_CITY = "CITY";
+
+        // It stores the State name
+        public static final String COLUMN_STATE = "STATE";
+
+        // It stores the Country name
+        public static final String COLUMN_COUNTRY = "COUNTRY";
+
+        // It stores the zipcode
+        public static final String COLUMN_ZIPCODE = "ZIPCODE";
 
         /******************
          * Public Methods *
          *****************/
         /****************
-         * Uri Builders *
+         * URI Builders *
          ***************/
-        public static Uri buildShiftUri(long id){
+        public static Uri buildAddressUri(long id){
             return ContentUris.withAppendedId(CONTENT_URI, id);
-        }
-
-        public static Uri buildShiftPeriodUri(Calendar startDate, Calendar endDate){
-            long startDateMillis = getDayFirstMillis(startDate);
-            long endDateMillis = getDayLastMillis(endDate);
-
-            return CONTENT_URI.buildUpon()
-                    .appendPath("period")
-                    .appendPath(Long.toString(startDateMillis))
-                    .appendPath(Long.toString(endDateMillis))
-                    .build();
         }
     }
 
@@ -163,64 +165,128 @@ public class LiftContract {
         }
 
         public static Uri buildLiftByShiftUri(long shiftId){
-            return CONTENT_URI.buildUpon().appendPath(Long.toString(shiftId)).build();
+            return CONTENT_URI.buildUpon()
+                    .appendPath(PATH_SHIFT).appendPath(Long.toString(shiftId))
+                    .build();
         }
     }
 
-    // Address Catalog
-    public static final class AddressEntry implements BaseColumns, LiftDbBaseColumns{
+
+    public static final class LiftAddressEntry implements BaseColumns, LiftDbBaseColumns{
         /*************
          * Constants *
          ************/
-        /*******
-         * URI *
-         ******/
+        /********
+         * URIs *
+         *******/
         public static final Uri CONTENT_URI =
-                BASE_CONTENT_URI.buildUpon().appendPath(PATH_ADDR).build();
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_LIFT_ADDR).build();
 
         public static final String CONTENT_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ADDR;
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_LIFT_ADDR;
 
         public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ADDR;
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_LIFT_ADDR;
 
         /*********
          * Table *
          ********/
-        public static final String TABLE_NAME = "ADDR";
+        public static final String TABLE_NAME = "LIFT_ADDR";
 
         /***********
          * Columns *
          **********/
-        // It stores the Place Name
-        public static final String COLUMN_PLACE = "PLACE";
+        // It stores the Lift's foreign key
+        public static final String COLUMN_LIFT_ID = "LIFT_ID";
 
-        // It stores the Neighborhood name
-        public static final String COLUMN_NEIGHBORHOOD = "NEIGHBORHOOD";
+        // It stores the Address's foreign key
+        public static final String COLUMN_ADDR_ID = "ADDR_ID";
 
-        // It stores the City name
-        public static final String COLUMN_CITY = "CITY";
+        // It stores the Address type [HOP_ON/HOP_OUT]
+        public static final String COLUMN_TYPE = "TYPE";
 
-        // It stores the State name
-        public static final String COLUMN_STATE = "STATE";
+        // It stores the Address number
+        public static final String COLUMN_NUM = "NUM";
 
-        // It stores the Country name
-        public static final String COLUMN_COUNTRY = "COUNTRY";
+        // It stores the Address Latitude
+        public static final String COLUMN_LAT = "LAT";
 
-        // It stores the zipcode
-        public static final String COLUMN_ZIPCODE = "ZIPCODE";
+        // It stores the Address longitude
+        public static final String COLUMN_LON = "LON";
+
+        // It stores the Point of Interest Name
+        // It can be a Pub, Bar, Restaurant, Monument, etc
+        //ToDo: In the next version change this column to POI_ID and store POI info in other table
+        public static final String COLUMN_POI = "POI";
+
+        /******************
+         * Public Methods *
+         *****************/
+        public static Uri buildLiftAddressUri(long id){
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildLiftAddressByLift(long liftId){
+            return CONTENT_URI.buildUpon()
+                    .appendPath(PATH_LIFT).appendPath(Long.toString(liftId))
+                    .build();
+        }
+
+    }
+
+
+    public static final class ShiftEntry implements BaseColumns, LiftDbBaseColumns{
+        /*************
+         * Constants *
+         ************/
+        /*******
+         * Uri *
+         ******/
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_SHIFT).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_SHIFT;
+
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_SHIFT;
+
+        /*********
+         * Table *
+         ********/
+        public static final String TABLE_NAME = "SHIFT";
+
+        /***********
+         * Columns *
+         **********/
+        //It stores the date when the shift has started
+        public static final String COLUMN_START_DT = "START_DT";
+
+        //It stores the date when the shift has been finished
+        public static final String COLUMN_END_DT = "END_DT";
 
         /******************
          * Public Methods *
          *****************/
         /****************
-         * URI Builders *
+         * Uri Builders *
          ***************/
-        public static Uri buildAddressUri(long id){
+        public static Uri buildShiftUri(long id){
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildShiftPeriodUri(Calendar startDate, Calendar endDate){
+            long startDateMillis = getDayFirstMillis(startDate);
+            long endDateMillis = getDayLastMillis(endDate);
+
+            return CONTENT_URI.buildUpon()
+                    .appendPath("period")
+                    .appendPath(Long.toString(startDateMillis))
+                    .appendPath(Long.toString(endDateMillis))
+                    .build();
         }
     }
 
-    //ToDo: Implement LiftAddressEntry inner class
+
     //ToDo: Implement ExpenseEntry inner class
 }
