@@ -8,7 +8,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.oak.rickfurfles.model.dm.LiftContract;
-import com.oak.rickfurfles.model.dm.LiftDbBaseColumns;
 import com.oak.rickfurfles.model.dm.LiftDbHelper;
 
 import junit.framework.Assert;
@@ -24,6 +23,8 @@ import java.util.HashSet;
 
 /**
  * Created by Alex on 26/10/2016.
+ * This class:
+ *    It tests all tables creation and insertion.
  */
 
 @RunWith(AndroidJUnit4.class)
@@ -79,8 +80,7 @@ public class TestDb {
         cursor.close();
 
     }
-
-    //ToDo: Implement insertAddress
+    
     @Test
     public void insertAddress(){
         // Open db (Create if it doesn't exist)
@@ -114,8 +114,53 @@ public class TestDb {
      * It checks:
      *  - If the db could be opened
      *  - If it was possible to insert a Shift Record in the db
+     *  - If it was possible to insert a Expense
+     *  - If the record inserted into Expense table are with the expected values
+     */
+    @Test
+    public void insertExpense(){
+        // Open db (Create if it doesn't exists)
+        SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
+
+        // Create a Shift
+        ContentValues shiftValues = this.getSampleShiftValues();
+
+        long shiftId = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
+                null,
+                shiftValues);
+
+        // Check if the Shift was created
+        Assert.assertTrue("insertExpense: It wasn't possible to insert the Shift", shiftId != -1);
+
+        // Create a Expense
+        ContentValues expenseValues = this.getSampleExpenseValues(shiftId);
+
+        long expenseId = sqLiteDatabase.insert(LiftContract.ExpenseEntry.TABLE_NAME,
+                null,
+                expenseValues);
+
+        // Check if the expense was created
+        Assert.assertTrue("insertExpense: It was impossible to insert the Expense", expenseId != -1);
+
+        // Query all expenses
+        Cursor cursor = sqLiteDatabase.rawQuery("select * from " + LiftContract.ExpenseEntry.TABLE_NAME,
+                null);
+
+        // Check if the cursor has the inserted Expense
+        expenseValues.put(LiftContract.ExpenseEntry._ID, expenseId);
+
+        Assert.assertTrue("insertExpense: Expencted expense Values and cursor Values are not matching",
+                TestUtilities.isValidCursor(cursor, expenseValues));
+
+        cursor.close();
+    }
+
+    /*
+     * It checks:
+     *  - If the db could be opened
+     *  - If it was possible to insert a Shift Record in the db
      *  - If it was possible to insert 2 Lift sample Records
-     *  - If the recorde inserted into Lift table are with the expected values
+     *  - If the record inserted into Lift table are with the expected values
      */
     @Test
     public void insertLift(){
@@ -307,6 +352,23 @@ public class TestDb {
         return addressValues;
     }
 
+    private ContentValues getExpenseValues(String name,
+                                           GregorianCalendar date,
+                                           BigDecimal value,
+                                           long shiftId){
+        GregorianCalendar creationDate = new GregorianCalendar();
+
+        ContentValues expenseValues = new ContentValues();
+        expenseValues.put(LiftContract.ExpenseEntry.COLUMN_CREATED, creationDate.getTimeInMillis());
+        expenseValues.put(LiftContract.ExpenseEntry.COLUMN_LAST_UPD, creationDate.getTimeInMillis());
+        expenseValues.put(LiftContract.ExpenseEntry.COLUMN_NAME, name);
+        expenseValues.put(LiftContract.ExpenseEntry.COLUMN_DATE, date.getTimeInMillis());
+        expenseValues.put(LiftContract.ExpenseEntry.COLUMN_VALUE, value.toString());
+        expenseValues.put(LiftContract.ExpenseEntry.COLUMN_SHIFT_ID, shiftId);
+
+        return expenseValues;
+    }
+
     /*
      * It generates a ContentValues for the Lift entity, where all data is passed as parameter.
      */
@@ -376,6 +438,29 @@ public class TestDb {
                 state,
                 country,
                 zipcode);
+    }
+
+    /*
+     * It generates a ContentValues object for the Expense where:
+     *  - Name: food
+     *  - Date: Yesterday 21:30:XX
+     *  - Value: 6.30
+     *  - Shift Id: @param
+     */
+    private ContentValues getSampleExpenseValues(long shiftId){
+        String name = "food";
+
+        GregorianCalendar date = new GregorianCalendar();
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        date.set(Calendar.HOUR_OF_DAY, 21);
+        date.set(Calendar.MINUTE, 30);
+
+        BigDecimal value = new BigDecimal("6.3");
+
+        return this.getExpenseValues(name,
+                date,
+                value,
+                shiftId);
     }
 
     /*
