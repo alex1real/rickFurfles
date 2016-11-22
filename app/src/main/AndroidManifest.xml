@@ -18,6 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:authorities="com.oak.rickfurfles.app"
+            android:name="com.oak.rickfurfles.model.LiftProvider"/>
     </application>
 
 </manifest>
