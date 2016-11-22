@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.ContactsContract;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -38,6 +39,9 @@ public class TestDb {
         this.deleteDatabase();
     }
 
+    /*********
+     * Tests *
+     ********/
     /*
      * It checks:
      * - If the database was created
@@ -88,7 +92,7 @@ public class TestDb {
 
         // Create an Address
 
-        ContentValues addressValues = this.getSampleAddressValues();
+        ContentValues addressValues = getAddressValuesSample();
 
         long addressId = sqLiteDatabase.insert(LiftContract.AddressEntry.TABLE_NAME,
                 null,
@@ -123,7 +127,7 @@ public class TestDb {
         SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
 
         // Create a Shift
-        ContentValues shiftValues = this.getSampleShiftValues();
+        ContentValues shiftValues = getShiftValuesSample1();
 
         long shiftId = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
                 null,
@@ -133,7 +137,7 @@ public class TestDb {
         Assert.assertTrue("insertExpense: It wasn't possible to insert the Shift", shiftId != -1);
 
         // Create a Expense
-        ContentValues expenseValues = this.getSampleExpenseValues(shiftId);
+        ContentValues expenseValues = getExpenseValuesSample(shiftId);
 
         long expenseId = sqLiteDatabase.insert(LiftContract.ExpenseEntry.TABLE_NAME,
                 null,
@@ -168,7 +172,7 @@ public class TestDb {
         SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
 
         // Create a Shift
-        ContentValues shiftValues = this.getSampleShiftValues();
+        ContentValues shiftValues = getShiftValuesSample1();
 
         long shiftId = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
                 null,
@@ -178,7 +182,7 @@ public class TestDb {
         Assert.assertTrue("insertLift Error: Failure to insert shift.", shiftId != -1);
 
         // Create a Lift
-        ContentValues liftSampleValues1 = this.getSampleLiftValues1(shiftId);
+        ContentValues liftSampleValues1 = getLiftValuesSample1(shiftId);
 
         long liftId1 = sqLiteDatabase.insert(LiftContract.LiftEntry.TABLE_NAME,
                 null,
@@ -188,7 +192,7 @@ public class TestDb {
         Assert.assertTrue("inserLift Error: Failure to insert Lift.", liftId1 != -1);
 
         // Create another Lift
-        ContentValues liftSampleValues2 = this.getSampleLiftValues2(shiftId);
+        ContentValues liftSampleValues2 = getLiftValuesSample2(shiftId);
 
         long liftId2 = sqLiteDatabase.insert(LiftContract.LiftEntry.TABLE_NAME,
                 null,
@@ -231,7 +235,7 @@ public class TestDb {
         SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
 
         // Insert Address
-        ContentValues addressValues = this.getSampleAddressValues();
+        ContentValues addressValues = getAddressValuesSample();
 
         long addressId = sqLiteDatabase.insert(LiftContract.AddressEntry.TABLE_NAME,
                 null,
@@ -241,7 +245,7 @@ public class TestDb {
         Assert.assertTrue("insertLiftAddress Error: Failure to insert Address.", addressId != -1);
 
         // Insert Shift
-        ContentValues shiftValues = this.getSampleShiftValues();
+        ContentValues shiftValues = getShiftValuesSample1();
 
         long shiftId = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
                 null,
@@ -251,7 +255,7 @@ public class TestDb {
         Assert.assertTrue("insertLiftAddress Error: Failure to insert Shift.", shiftId != -1);
 
         // Insert Lift
-        ContentValues liftValues = this.getSampleLiftValues1(shiftId);
+        ContentValues liftValues = getLiftValuesSample1(shiftId);
 
         long liftId = sqLiteDatabase.insert(LiftContract.LiftEntry.TABLE_NAME,
                 null,
@@ -261,7 +265,7 @@ public class TestDb {
         Assert.assertTrue("insertLiftAddress Error: Failure to insert Lift.", liftId != -1);
 
         // Insert LiftAddress
-        ContentValues liftAddressValues = this.getSampleLiftAddressValues(liftId, addressId);
+        ContentValues liftAddressValues = getLiftAddressValuesSample(liftId, addressId);
 
         long liftAddressId = sqLiteDatabase.insert(LiftContract.LiftAddressEntry.TABLE_NAME,
                 null,
@@ -304,7 +308,7 @@ public class TestDb {
     public void insertShift(){
         SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
 
-        ContentValues shiftValues = this.getSampleShiftValues();
+        ContentValues shiftValues = getShiftValuesSample1();
 
         long shiftId = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
                 null,
@@ -321,22 +325,15 @@ public class TestDb {
         cursor.close();
     }
 
-
-    /*******************
-     * Private Methods *
-     ******************/
-    private void deleteDatabase(){
-        Context appContext = InstrumentationRegistry.getTargetContext();
-
-        appContext.deleteDatabase(LiftDbHelper.DATABASE_NAME);
-    }
-
-    private ContentValues getAddressValues(String place,
-                                           String neighborhood,
-                                           String city,
-                                           String state,
-                                           String country,
-                                           String zipcode){
+    /*****************************
+     * Content Values Generators *
+     ****************************/
+    public static ContentValues getAddressValues(String place,
+                                                 String neighborhood,
+                                                 String city,
+                                                 String state,
+                                                 String country,
+                                                 String zipcode){
         Calendar creationDate = new GregorianCalendar();
 
         ContentValues addressValues = new ContentValues();
@@ -352,10 +349,26 @@ public class TestDb {
         return addressValues;
     }
 
-    private ContentValues getExpenseValues(String name,
-                                           GregorianCalendar date,
-                                           BigDecimal value,
-                                           long shiftId){
+    public static ContentValues getAddressValuesSample(){
+        String place = "Camden Street";
+        String neighborhood = "Saint Kevin's";
+        String city = "Dublin";
+        String state = "Dublin";
+        String country = "Ireland";
+        String zipcode = "Dublin 2";
+
+        return getAddressValues(place,
+                neighborhood,
+                city,
+                state,
+                country,
+                zipcode);
+    }
+
+    public static ContentValues getExpenseValues(String name,
+                                                 GregorianCalendar date,
+                                                 BigDecimal value,
+                                                 long shiftId){
         GregorianCalendar creationDate = new GregorianCalendar();
 
         ContentValues expenseValues = new ContentValues();
@@ -370,13 +383,36 @@ public class TestDb {
     }
 
     /*
+     * It generates a ContentValues object for the Expense where:
+     *  - Name: food
+     *  - Date: Yesterday 21:30:XX
+     *  - Value: 6.30
+     *  - Shift Id: @param
+     */
+    public static ContentValues getExpenseValuesSample(long shiftId){
+        String name = "food";
+
+        GregorianCalendar date = new GregorianCalendar();
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        date.set(Calendar.HOUR_OF_DAY, 21);
+        date.set(Calendar.MINUTE, 30);
+
+        BigDecimal value = new BigDecimal("6.3");
+
+        return getExpenseValues(name,
+                date,
+                value,
+                shiftId);
+    }
+
+    /*
      * It generates a ContentValues for the Lift entity, where all data is passed as parameter.
      */
-    private ContentValues getLiftValues(Calendar startDate,
-                                        Calendar endDate,
-                                        BigDecimal price,
-                                        int passengersNum,
-                                        long shiftId){
+    public static ContentValues getLiftValues(Calendar startDate,
+                                              Calendar endDate,
+                                              BigDecimal price,
+                                              int passengersNum,
+                                              long shiftId){
         GregorianCalendar creationDate = new GregorianCalendar();
 
         ContentValues liftValues = new ContentValues();
@@ -392,6 +428,148 @@ public class TestDb {
     }
 
     /*
+     * It generates a ContentValues object for the Lift where:
+     *  - Start Date: yesterday 23:11
+     *  - End Date: yesterday 23:22
+     *  - Price: 15.50
+     *  - Number of Passengers: 3
+     *  - Shift Id: @param
+     */
+    public static ContentValues getLiftValuesSample1(long shiftId){
+        GregorianCalendar startDate = new GregorianCalendar();
+        startDate.add(Calendar.DAY_OF_YEAR, -1);
+        startDate.set(Calendar.HOUR_OF_DAY, 23);
+        startDate.set(Calendar.MINUTE, 11);
+
+        GregorianCalendar endDate = new GregorianCalendar();
+        endDate.add(Calendar.DAY_OF_YEAR, -1);
+        endDate.set(Calendar.HOUR_OF_DAY, 23);
+        endDate.set(Calendar.MINUTE, 22);
+
+        //float is not precise
+        BigDecimal price = new BigDecimal("15.5");
+        int numberOfPassengers = 3;
+
+        return getLiftValues(startDate,
+                endDate,
+                price,
+                numberOfPassengers,
+                shiftId);
+    }
+
+    /*
+     * It generates a ContentValues object for the Lift where:
+     *  - Start Date: Today 1:31
+     *  - End Date: 1:43 min ago
+     *  - Price: 12.20
+     *  - Number of Passengers: 2
+     *  - Shift Id: @param
+     */
+    public static ContentValues getLiftValuesSample2(long shiftId){
+        GregorianCalendar startDate = new GregorianCalendar();
+        startDate.set(Calendar.HOUR_OF_DAY, 1);
+        startDate.set(Calendar.MINUTE, 31);
+
+        GregorianCalendar endDate = new GregorianCalendar();
+        endDate.set(Calendar.HOUR_OF_DAY, 1);
+        endDate.set(Calendar.MINUTE, - 43);
+
+        //float isn't precise
+        BigDecimal price = new BigDecimal("12.2");
+        int numberOfPassengers = 2;
+
+        return getLiftValues(startDate,
+                endDate,
+                price,
+                numberOfPassengers,
+                shiftId);
+    }
+
+    /*
+     * It generates a ContentValues object for the Lift where:
+     *  - Start Date: d-2 22:13
+     *  - End Date: d-2 22:12
+     *  - Price: 10.00
+     *  - Number of Passengers: 2
+     *  - Shift Id: @param
+     */
+    public static ContentValues getLiftValuesSample3(long shiftId){
+        GregorianCalendar startDate = new GregorianCalendar();
+        startDate.set(Calendar.HOUR_OF_DAY, 1);
+        startDate.set(Calendar.MINUTE, 31);
+
+        GregorianCalendar endDate = new GregorianCalendar();
+        endDate.set(Calendar.HOUR_OF_DAY, 1);
+        endDate.set(Calendar.MINUTE, - 43);
+
+        //float isn't precise
+        BigDecimal price = new BigDecimal("12.2");
+        int numberOfPassengers = 2;
+
+        return getLiftValues(startDate,
+                endDate,
+                price,
+                numberOfPassengers,
+                shiftId);
+    }
+
+    /*
+     * It generates a ContentValues object for the Lift where:
+     *  - Start Date: d -2 11:58
+     *  - End Date: d -1 00:03 min ago
+     *  - Price: 5.00
+     *  - Number of Passengers: 1
+     *  - Shift Id: @param
+     */
+    public static ContentValues getLiftValuesSample4(long shiftId){
+        GregorianCalendar startDate = new GregorianCalendar();
+        startDate.set(Calendar.HOUR_OF_DAY, 1);
+        startDate.set(Calendar.MINUTE, 31);
+
+        GregorianCalendar endDate = new GregorianCalendar();
+        endDate.set(Calendar.HOUR_OF_DAY, 1);
+        endDate.set(Calendar.MINUTE, - 43);
+
+        //float isn't precise
+        BigDecimal price = new BigDecimal("12.2");
+        int numberOfPassengers = 2;
+
+        return getLiftValues(startDate,
+                endDate,
+                price,
+                numberOfPassengers,
+                shiftId);
+    }
+
+    /*
+     * It generates a ContentValues object for the Lift where:
+     *  - Start Date: d -14 21:21
+     *  - End Date: d -14 21:36 min ago
+     *  - Price: 50.00
+     *  - Number of Passengers: 2
+     *  - Shift Id: @param
+     */
+    public static ContentValues getLiftValuesSample5(long shiftId){
+        GregorianCalendar startDate = new GregorianCalendar();
+        startDate.set(Calendar.HOUR_OF_DAY, 1);
+        startDate.set(Calendar.MINUTE, 31);
+
+        GregorianCalendar endDate = new GregorianCalendar();
+        endDate.set(Calendar.HOUR_OF_DAY, 1);
+        endDate.set(Calendar.MINUTE, - 43);
+
+        //float isn't precise
+        BigDecimal price = new BigDecimal("12.2");
+        int numberOfPassengers = 2;
+
+        return getLiftValues(startDate,
+                endDate,
+                price,
+                numberOfPassengers,
+                shiftId);
+    }
+
+    /*
      * Generate a ContentValues object for the shift where:
      *  - Lift Id: @param
      *  - Address Id: @param
@@ -401,13 +579,13 @@ public class TestDb {
      *  - Longitude: @param
      *  - Point of Interest: @param
      */
-    private ContentValues getLiftAddressValues(long liftId,
-                                               long addressId,
-                                               String type,
-                                               int number,
-                                               double latitude,
-                                               double longitude,
-                                               String pointOfInterest){
+    public static ContentValues getLiftAddressValues(long liftId,
+                                                     long addressId,
+                                                     String type,
+                                                     int number,
+                                                     double latitude,
+                                                     double longitude,
+                                                     String pointOfInterest){
         GregorianCalendar creationDate = new GregorianCalendar();
 
         ContentValues liftAddressValues = new ContentValues();
@@ -424,72 +602,6 @@ public class TestDb {
         return liftAddressValues;
     }
 
-    private ContentValues getSampleAddressValues(){
-        String place = "Camden Street";
-        String neighborhood = "Saint Kevin's";
-        String city = "Dublin";
-        String state = "Dublin";
-        String country = "Ireland";
-        String zipcode = "Dublin 2";
-
-        return this.getAddressValues(place,
-                neighborhood,
-                city,
-                state,
-                country,
-                zipcode);
-    }
-
-    /*
-     * It generates a ContentValues object for the Expense where:
-     *  - Name: food
-     *  - Date: Yesterday 21:30:XX
-     *  - Value: 6.30
-     *  - Shift Id: @param
-     */
-    private ContentValues getSampleExpenseValues(long shiftId){
-        String name = "food";
-
-        GregorianCalendar date = new GregorianCalendar();
-        date.add(Calendar.DAY_OF_YEAR, -1);
-        date.set(Calendar.HOUR_OF_DAY, 21);
-        date.set(Calendar.MINUTE, 30);
-
-        BigDecimal value = new BigDecimal("6.3");
-
-        return this.getExpenseValues(name,
-                date,
-                value,
-                shiftId);
-    }
-
-    /*
-     * It generates a ContentValues object for the Lift where:
-     *  - Start Date: 2 hours ago
-     *  - End Date: 1:46 min ago
-     *  - Price: 15.50
-     *  - Number of Passengers: 3
-     *  - Shift Id: @param
-     */
-    private ContentValues getSampleLiftValues1(long shiftId){
-        GregorianCalendar startDate = new GregorianCalendar();
-        startDate.add(Calendar.HOUR_OF_DAY, -2);
-
-        GregorianCalendar endDate = new GregorianCalendar();
-        endDate.add(Calendar.HOUR_OF_DAY, -1);
-        endDate.add(Calendar.MINUTE, -46);
-
-        //float is not precise
-        BigDecimal price = new BigDecimal("15.5");
-        int numberOfPassengers = 3;
-
-        return this.getLiftValues(startDate,
-                endDate,
-                price,
-                numberOfPassengers,
-                shiftId);
-    }
-
     /*
      * It generates a ContentValues object for the LiftAddress where:
      *  - Lift Id: @param
@@ -500,8 +612,8 @@ public class TestDb {
      *  - Longitude: -6.260278
      *  - Point of interest: Spire
      */
-    private ContentValues getSampleLiftAddressValues(long liftId,
-                                                     long addressId){
+    public static ContentValues getLiftAddressValuesSample(long liftId,
+                                                           long addressId){
         String type = "HOP_IN";
         int number = 33;
         double latitude = 53.349722;
@@ -518,63 +630,14 @@ public class TestDb {
     }
 
     /*
-     * It generates a ContentValues object for the Lift where:
-     *  - Start Date: 1:30 hours ago
-     *  - End Date: 1:23 min ago
-     *  - Price: 12.20
-     *  - Number of Passangers: 2
-     *  - Shift Id: @param
-     */
-    private ContentValues getSampleLiftValues2(long shiftId){
-        GregorianCalendar startDate = new GregorianCalendar();
-        startDate.add(Calendar.HOUR_OF_DAY, -1);
-        startDate.add(Calendar.MINUTE, -30);
-
-        GregorianCalendar endDate = new GregorianCalendar();
-        endDate.add(Calendar.HOUR_OF_DAY, -1);
-        endDate.add(Calendar.MINUTE, - 37);
-
-        //float isn't precise
-        BigDecimal price = new BigDecimal("12.2");
-        int numberOfPassengers = 2;
-
-        return this.getLiftValues(startDate,
-                endDate,
-                price,
-                numberOfPassengers,
-                shiftId);
-    }
-
-    /*
-     * Generate a ContentValues object for the shift with the following characteristics:
-     *  - Creation Date: Current Date
-     *  - Last Update Date: Current Date
-     *  - Start shift date: Yesterday 21:00:XX
-     *  - End shift date: Today 05:XX:XX
-     */
-    private ContentValues getSampleShiftValues(){
-        Calendar shiftStartDate = new GregorianCalendar();
-        shiftStartDate.add(Calendar.DAY_OF_MONTH, -1);
-        shiftStartDate.set(Calendar.HOUR_OF_DAY, 21);
-        shiftStartDate.set(Calendar.MINUTE, 0);
-
-        Calendar shiftEndDate = new GregorianCalendar();
-        shiftEndDate.set(Calendar.HOUR_OF_DAY, 5);
-
-        return this.getShiftValues(shiftStartDate, shiftEndDate);
-
-    }
-
-
-
-    /*
      * Generate a ContentValues object for the shift where:
      *  - Creation Date: Current Date
      *  - Last Update Date: Current Date
      *  - Start shift date: @param
      *  - End shift date: @param
      */
-    private ContentValues getShiftValues(Calendar startDate, Calendar endDate){
+    public static ContentValues getShiftValues(Calendar startDate,
+                                               Calendar endDate){
         GregorianCalendar creationDate = new GregorianCalendar();
 
         ContentValues shiftValues = new ContentValues();
@@ -584,6 +647,79 @@ public class TestDb {
         shiftValues.put(LiftContract.ShiftEntry.COLUMN_END_DT, endDate.getTimeInMillis());
 
         return shiftValues;
+    }
+
+    /*
+     * Generate a ContentValues object for the shift with the following characteristics:
+     *  - Creation Date: Current Date
+     *  - Last Update Date: Current Date
+     *  - Start shift date: Yesterday 21:00:XX
+     *  - End shift date: Today 05:XX:XX
+     * Shift for Lift samples 1 and 2
+     */
+    public static ContentValues getShiftValuesSample1(){
+        Calendar shiftStartDate = new GregorianCalendar();
+        shiftStartDate.add(Calendar.DAY_OF_MONTH, -1);
+        shiftStartDate.set(Calendar.HOUR_OF_DAY, 21);
+        shiftStartDate.set(Calendar.MINUTE, 0);
+
+        Calendar shiftEndDate = new GregorianCalendar();
+        shiftEndDate.set(Calendar.HOUR_OF_DAY, 5);
+
+        return getShiftValues(shiftStartDate, shiftEndDate);
+
+    }
+
+    /*
+     * Generate a ContentValues object for the shift with the following characteristics:
+     *  - Creation Date: Current Date
+     *  - Last Update Date: Current Date
+     *  - Start shift date: d-2 21:30:XX
+     *  - End shift date: yesterday 04:44:XX
+     * Shift for Lift samples 3 and 4
+     */
+    public static ContentValues getShiftValuesSample2(){
+        Calendar shiftStartDate = new GregorianCalendar();
+        shiftStartDate.add(Calendar.DAY_OF_YEAR, -2);
+        shiftStartDate.set(Calendar.HOUR_OF_DAY, 21);
+        shiftStartDate.set(Calendar.MINUTE, 30);
+
+        Calendar shiftEndDate = new GregorianCalendar();
+        shiftEndDate.add(Calendar.DAY_OF_YEAR, -1);
+        shiftEndDate.set(Calendar.HOUR_OF_DAY, 4);
+        shiftEndDate.set(Calendar.MINUTE, 44);
+
+        return getShiftValues(shiftStartDate, shiftEndDate);
+    }
+
+    /*
+     * Generate a ContentValues object for the shift with the following characteristics:
+     *  - Creation Date: Current Date
+     *  - Last Update Date: Current Date
+     *  - Start shift date: 2 weeks ago 21:15:XX
+     *  - End shift date: d-13 03:XX:XX
+     * Shift for Lift sample 5
+     */
+    public static ContentValues getShiftValuesSample3(){
+        Calendar shiftStartDate = new GregorianCalendar();
+        shiftStartDate.add(Calendar.DAY_OF_YEAR, -14);
+        shiftStartDate.set(Calendar.HOUR_OF_DAY, 21);
+        shiftStartDate.set(Calendar.MINUTE, 15);
+
+        Calendar shiftEndDate = new GregorianCalendar();
+        shiftEndDate.add(Calendar.DAY_OF_YEAR, -13);
+        shiftEndDate.set(Calendar.HOUR_OF_DAY, 3);
+
+        return getShiftValues(shiftStartDate, shiftEndDate);
+    }
+
+    /*******************
+     * Private Methods *
+     ******************/
+    private void deleteDatabase(){
+        Context appContext = InstrumentationRegistry.getTargetContext();
+
+        appContext.deleteDatabase(LiftDbHelper.DATABASE_NAME);
     }
 
     /*

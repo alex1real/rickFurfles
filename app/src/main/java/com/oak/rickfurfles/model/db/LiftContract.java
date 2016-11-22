@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * Created by Alex on 26/10/2016.
@@ -32,11 +33,14 @@ public class LiftContract {
     // Possible paths (appended to base content URI for possible URIs)
     // For instance, content://com.oak.rickfurfles.app/shift/ is a valid path for looking at shift
     // data
-    public static final String PATH_SHIFT = "shift";
+    public static final String PATH_ADDR = "address";
+    public static final String PATH_EXPENSE = "expense";
     public static final String PATH_LIFT = "lift";
-    public static final String PATH_ADDR = "Address";
-    public static final String PATH_LIFT_ADDR = "LiftAddress";
-    public static final String PATH_EXPENSE = "Expense";
+    public static final String PATH_LIFT_ADDR = "liftAddress";
+    public static final String PATH_LIFT_ADDR_TYPE = "type";
+    public static final String PATH_SHIFT = "shift";
+    public static final String PATH_SHIFT_PERIOD = "period";
+    public static final String PATH_SHIFT_SUM = "sum";
 
     /*******************
      * Private Methods *
@@ -117,7 +121,6 @@ public class LiftContract {
     }
 
 
-    //ToDo: Implement ExpenseEntry inner class
     public static final class ExpenseEntry implements BaseColumns, LiftDbBaseColumns{
         /*************
          * Constants *
@@ -164,10 +167,19 @@ public class LiftContract {
             return ContentUris.withAppendedId(CONTENT_URI, expenseId);
         }
 
-        public static Uri buildExpenseShiftUri(long shiftId){
+        public static Uri buildExpenseByShiftUri(long shiftId){
             return CONTENT_URI.buildUpon()
                     .appendPath(PATH_SHIFT).appendPath(Long.toString(shiftId))
                     .build();
+        }
+
+        /***************
+         * URI Getters *
+         **************/
+        public static long getShiftIdFromUri(Uri uri){
+            String shiftId = uri.getPathSegments().get(2);
+
+            return Long.parseLong(shiftId);
         }
     }
 
@@ -227,6 +239,15 @@ public class LiftContract {
                     .appendPath(PATH_SHIFT).appendPath(Long.toString(shiftId))
                     .build();
         }
+
+        /***************
+         * URI Getters *
+         **************/
+        public static long getShiftIdFromUri(Uri uri){
+            String shiftId = uri.getPathSegments().get(2);
+
+            return Long.parseLong(shiftId);
+        }
     }
 
 
@@ -280,14 +301,37 @@ public class LiftContract {
         /******************
          * Public Methods *
          *****************/
+        /****************
+         * URI Builders *
+         ***************/
         public static Uri buildLiftAddressUri(long id){
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildLiftAddressByLift(long liftId){
+        public static Uri buildLiftAddressByLiftUri(long liftId){
             return CONTENT_URI.buildUpon()
                     .appendPath(PATH_LIFT).appendPath(Long.toString(liftId))
                     .build();
+        }
+
+        public static Uri buildLiftAddressByLiftTypeUri(long liftId,
+                                                        String type){
+            return CONTENT_URI.buildUpon()
+                    .appendPath(PATH_LIFT).appendPath(Long.toString(liftId))
+                    .appendPath(PATH_LIFT_ADDR_TYPE).appendPath(type)
+                    .build();
+        }
+        /***************
+         * URI Getters *
+         **************/
+        public static long getLiftIdFromUri(Uri uri){
+            String liftId = uri.getPathSegments().get(2);
+
+            return Long.parseLong(liftId);
+        }
+
+        public static String getTypeFromUri(Uri uri){
+            return uri.getPathSegments().get(4);
         }
 
     }
@@ -338,10 +382,56 @@ public class LiftContract {
             long endDateMillis = getDayLastMillis(endDate);
 
             return CONTENT_URI.buildUpon()
-                    .appendPath("period")
+                    .appendPath(LiftContract.PATH_SHIFT_PERIOD)
                     .appendPath(Long.toString(startDateMillis))
                     .appendPath(Long.toString(endDateMillis))
                     .build();
+        }
+
+        public static Uri buildShiftPeriodSumUri(Calendar startDate, Calendar endDate){
+            long startDateMillis = getDayFirstMillis(startDate);
+            long endDateMillis = getDayLastMillis(endDate);
+
+            return CONTENT_URI.buildUpon()
+                    .appendPath(LiftContract.PATH_SHIFT_PERIOD)
+                    .appendPath(Long.toString(startDateMillis))
+                    .appendPath(Long.toString(endDateMillis))
+                    .appendPath(LiftContract.PATH_SHIFT_SUM)
+                    .build();
+        }
+
+        public static Uri buildShiftSumUri(long id){
+
+            return CONTENT_URI.buildUpon()
+                    .appendPath(Long.toString(id))
+                    .appendPath(LiftContract.PATH_SHIFT_SUM)
+                    .build();
+
+        }
+
+        /***************
+         * URI Getters *
+         **************/
+        public static long getIdFromUri(Uri uri){
+            return Long.parseLong(uri.getPathSegments().get(1));
+        }
+
+        public static Calendar getStartDateFromUri(Uri uri){
+            String startDateMillis = uri.getPathSegments().get(2);
+
+            GregorianCalendar startDate = new GregorianCalendar();
+            startDate.setTimeInMillis(Long.parseLong(startDateMillis));
+
+            return startDate;
+        }
+
+        public static Calendar getEndDateFromUri(Uri uri){
+            String endDateMillis = uri.getPathSegments().get(3);
+
+            GregorianCalendar endDate = new GregorianCalendar();
+            endDate.setTimeInMillis(Long.parseLong(endDateMillis));
+
+            return endDate;
         }
     }
 
