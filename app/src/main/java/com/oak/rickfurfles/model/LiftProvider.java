@@ -5,9 +5,11 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.oak.rickfurfles.model.db.LiftContract;
+import com.oak.rickfurfles.model.db.LiftDbHelper;
 
 /**
  * Created by Alex on 09/11/2016.
@@ -33,6 +35,8 @@ public class LiftProvider extends ContentProvider {
     private static final int SHIFT_BY_PERIOD_SUM = 502;
     private static final int SHIFT_SUM = 503;
 
+    private LiftDbHelper liftDbHelper;
+
     /******************
      * Public Methods *
      *****************/
@@ -43,7 +47,48 @@ public class LiftProvider extends ContentProvider {
     public int delete(Uri uri,
                       String selection,
                       String[] selectionArgs){
-        return 0;
+        final SQLiteDatabase sqLiteDatabase = liftDbHelper.getWritableDatabase();
+
+        int match = uriMatcher.match(uri);
+        int numAffectedRows;
+        String tableName;
+
+
+        switch(match){
+            case ADDRESS:
+                tableName = LiftContract.AddressEntry.TABLE_NAME;
+
+                break;
+            case EXPENSE:
+                tableName = LiftContract.ExpenseEntry.TABLE_NAME;
+
+                break;
+            case LIFT:
+                tableName = LiftContract.LiftEntry.TABLE_NAME;
+
+                break;
+            case LIFT_ADDR:
+                tableName = LiftContract.LiftAddressEntry.TABLE_NAME;
+
+                break;
+            case SHIFT:
+                tableName = LiftContract.ShiftEntry.TABLE_NAME;
+
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
+        }
+
+        numAffectedRows = sqLiteDatabase.delete(tableName,
+                selection,
+                selectionArgs);
+
+        if(numAffectedRows > 0)
+            getContext().getContentResolver().notifyChange(uri,null);
+
+        sqLiteDatabase.close();
+
+        return numAffectedRows;
     }
 
     @Override
@@ -83,7 +128,33 @@ public class LiftProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri,
                       ContentValues contentValues){
-        return null;
+        final SQLiteDatabase sqLiteDatabase = liftDbHelper.getWritableDatabase();
+        int match = uriMatcher.match(uri);
+        Uri returnUri = null;
+        long id;
+
+        switch(match){
+            case ADDRESS:
+                id = sqLiteDatabase.insert(LiftContract.AddressEntry.TABLE_NAME,
+                        null,
+                        contentValues);
+
+                if(id > 0)
+                    returnUri = LiftContract.AddressEntry.buildAddressUri(id);
+
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
+        }
+
+        if(id <= 0)
+            throw new android.database.SQLException("Failed to insert row into " + uri.toString());
+
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        sqLiteDatabase.close();
+
+        return returnUri;
     }
 
     @Override
@@ -92,11 +163,34 @@ public class LiftProvider extends ContentProvider {
                         String selection,
                         String[] selectionArgs,
                         String sortOrder){
-        return null;
+        Cursor returnCursor;
+        int match = uriMatcher.match(uri);
+
+        SQLiteDatabase sqLiteDatabase = liftDbHelper.getReadableDatabase();
+
+        switch(match){
+            case ADDRESS:
+                returnCursor = sqLiteDatabase.query(LiftContract.AddressEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
+        }
+
+        returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        return returnCursor;
     }
 
     @Override
     public boolean onCreate(){
+        liftDbHelper = new LiftDbHelper(getContext());
+
         return true;
     }
 
@@ -105,7 +199,30 @@ public class LiftProvider extends ContentProvider {
                       ContentValues contentValues,
                       String selection,
                       String[] selectionArgs){
-        return 0;
+        final SQLiteDatabase sqLiteDatabase = liftDbHelper.getWritableDatabase();
+        int match = uriMatcher.match(uri);
+        int numAffectedRows;
+
+        switch(match){
+            case ADDRESS:
+                numAffectedRows = sqLiteDatabase.update(LiftContract.AddressEntry.TABLE_NAME,
+                        contentValues,
+                        selection,
+                        selectionArgs);
+
+                break;
+            default:
+                numAffectedRows = 0;
+
+                throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
+        }
+
+        if(numAffectedRows > 0)
+            getContext().getContentResolver().notifyChange(uri, null);
+
+        sqLiteDatabase.close();
+
+        return numAffectedRows;
     }
 
     /*******************
