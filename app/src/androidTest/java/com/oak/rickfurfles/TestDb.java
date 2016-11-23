@@ -92,7 +92,7 @@ public class TestDb {
 
         // Create an Address
 
-        ContentValues addressValues = getAddressValuesSample();
+        ContentValues addressValues = getAddressValuesSample1();
 
         long addressId = sqLiteDatabase.insert(LiftContract.AddressEntry.TABLE_NAME,
                 null,
@@ -235,7 +235,7 @@ public class TestDb {
         SQLiteDatabase sqLiteDatabase = this.openCreateWritableDb();
 
         // Insert Address
-        ContentValues addressValues = getAddressValuesSample();
+        ContentValues addressValues = getAddressValuesSample1();
 
         long addressId = sqLiteDatabase.insert(LiftContract.AddressEntry.TABLE_NAME,
                 null,
@@ -349,13 +349,29 @@ public class TestDb {
         return addressValues;
     }
 
-    public static ContentValues getAddressValuesSample(){
+    public static ContentValues getAddressValuesSample1(){
         String place = "Camden Street";
         String neighborhood = "Saint Kevin's";
         String city = "Dublin";
-        String state = "Dublin";
+        String state = "Leinster";
         String country = "Ireland";
         String zipcode = "Dublin 2";
+
+        return getAddressValues(place,
+                neighborhood,
+                city,
+                state,
+                country,
+                zipcode);
+    }
+
+    public static ContentValues getAddressValuesSample2(){
+        String place = "O'Connell Street";
+        String neighborhood = "Broadstone";
+        String city = "Dublin";
+        String state= "Leinster";
+        String country = "Ireland";
+        String zipcode = "Dublin 1";
 
         return getAddressValues(place,
                 neighborhood,

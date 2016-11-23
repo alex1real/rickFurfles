@@ -3,6 +3,7 @@ package com.oak.rickfurfles;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -158,7 +159,121 @@ public class TestProvider {
 
     @Test
     public void crudAddress(){
-        //ToDo: Implement crudAddress()
+        /******************
+         * Create Address *
+         *****************/
+        // Insert Address 1
+        ContentValues addressValuesSample1 = TestDb.getAddressValuesSample1();
+
+        // Register a ContentObserver for the insert
+        TestContentObserver tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.AddressEntry.CONTENT_URI,
+                true,
+                tco);
+        Uri addressUri = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
+                addressValuesSample1);
+
+        // Check if the ContentObserver was called
+        // If it fails, insert location isn't calling getContext().getResolver().notifyChange(uri, null)
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        long addressId = ContentUris.parseId(addressUri);
+        addressValuesSample1.put(LiftContract.AddressEntry._ID, addressId);
+
+        // Check if the insertion has been made
+        Assert.assertTrue("Error: Fail to insert Address. Invalid Id.", addressId > 0);
+
+        // Insert Address 2
+        ContentValues addressValuesSample2 = TestDb.getAddressValuesSample2();
+
+        addressUri = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
+                addressValuesSample2);
+
+        addressId = ContentUris.parseId(addressUri);
+        addressValuesSample2.put(LiftContract.AddressEntry._ID, addressId);
+
+        Assert.assertTrue("Error: Fail to insert Address 2. Invalid returned Id.", addressId > 0);
+
+        /****************
+         * Read Address *
+         ***************/
+        Cursor cursor = appContext.getContentResolver().query(LiftContract.AddressEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
+        // Check if returned Cursor contains the inserted record
+        Assert.assertTrue("Error: The returned cursor doesn't contain the first inserted address.",
+                TestUtilities.isValidCursor(cursor, addressValuesSample1));
+
+        Assert.assertTrue("Error: The returned cursor doesn't contain the second inserted address.",
+                TestUtilities.isValidCursor(cursor, addressValuesSample2));
+
+        cursor.close();
+
+        /******************
+         * Update Address *
+         *****************/
+        ContentValues updatedAddress2Values = new ContentValues(addressValuesSample2);
+        updatedAddress2Values.put(LiftContract.AddressEntry.COLUMN_PLACE, "Different Street");
+
+        // Create a cursor with observer to make sure that content provider is notifying the
+        // observers as expected
+        cursor = appContext.getContentResolver().query(LiftContract.AddressEntry.CONTENT_URI,
+                null, null, null, null);
+
+        tco = TestContentObserver.getTestContentObserver();
+        cursor.registerContentObserver(tco);
+
+        int numAffectedRows = appContext.getContentResolver().update(LiftContract.AddressEntry.CONTENT_URI,
+                updatedAddress2Values,
+                LiftContract.AddressEntry._ID + " = ?",
+                new String[]{Long.toString(addressId)});
+
+        Assert.assertEquals("Error: The update method failed.", 1, numAffectedRows);
+
+        // Test to make sure if the ContentObserver was called.
+        tco.waitForNotificationOrFail();
+
+        cursor.unregisterContentObserver(tco);
+        cursor.close();
+
+        // Check if the alteration is reflected into the record
+        cursor = appContext.getContentResolver().query(LiftContract.AddressEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertTrue("Error: The returned cursor doesn't contain the updated record.",
+                TestUtilities.isValidCursor(cursor, updatedAddress2Values));
+
+        cursor.close();
+
+        /******************
+         * Delete Address *
+         *****************/
+        cursor = appContext.getContentResolver().query(LiftContract.AddressEntry.CONTENT_URI,
+                null, null, null, null);
+        Assert.assertTrue("Error: The record that would be deleted couldn't be found",
+                TestUtilities.isValidCursor(cursor, updatedAddress2Values));
+
+        cursor.close();
+
+        tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.AddressEntry.CONTENT_URI,
+                true,
+                tco);
+
+        appContext.getContentResolver().delete(LiftContract.AddressEntry.CONTENT_URI,
+                LiftContract.AddressEntry._ID + " = ?",
+                new String[]{Long.toString(addressId)});
+
+        cursor = appContext.getContentResolver().query(LiftContract.AddressEntry.CONTENT_URI,
+                null, null, null, null);
+
+        // Check if the record is not present into the cursor anymore
+        Assert.assertFalse("Error: The record hasn't been deleted.",
+                TestUtilities.isValidCursor(cursor, updatedAddress2Values));
     }
 
     @Test
@@ -196,7 +311,13 @@ public class TestProvider {
      * Private Methods *
      ******************/
     private void deleteAllRecordsFromProvider(){
-        //ToDo: Implement deleteAllRecordsFromProvider()
+        appContext.getContentResolver().delete(LiftContract.AddressEntry.CONTENT_URI, null, null);
+        appContext.getContentResolver().delete(LiftContract.ExpenseEntry.CONTENT_URI, null, null);
+        appContext.getContentResolver().delete(LiftContract.LiftEntry.CONTENT_URI, null, null);
+        appContext.getContentResolver().delete(LiftContract.LiftAddressEntry.CONTENT_URI,
+                null,
+                null);
+        appContext.getContentResolver().delete(LiftContract.ShiftEntry.CONTENT_URI, null, null);
     }
 
     private long insertAddress(ContentValues addressValues){
@@ -209,8 +330,8 @@ public class TestProvider {
         return addressId;
     }
 
-    private long insertAddressSample(){
-        ContentValues addressValues = TestDb.getAddressValuesSample();
+    private long insertAddressSample1(){
+        ContentValues addressValues = TestDb.getAddressValuesSample1();
 
         return insertAddress(addressValues);
     }
