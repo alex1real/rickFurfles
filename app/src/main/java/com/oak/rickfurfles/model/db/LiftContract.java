@@ -368,6 +368,15 @@ public class LiftContract {
         public static final String COLUMN_END_DT = "END_DT";
 
         /******************
+         * Pseudo Columns *
+         *****************/
+        // Column for sum(lift.price) function
+        public static final String FUNCTION_SUM_PRICE = "SUM_PRICE";
+
+        // Column for count(*) Shift-Lift function
+        public static final String FUNCTION_COUNT_LIFT = "COUNT_LIFT";
+
+        /******************
          * Public Methods *
          *****************/
         /****************

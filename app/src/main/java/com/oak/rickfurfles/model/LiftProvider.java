@@ -6,13 +6,18 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import com.oak.rickfurfles.model.db.LiftContract;
 import com.oak.rickfurfles.model.db.LiftDbHelper;
 
+import java.util.Calendar;
+
 /**
  * Created by Alex on 09/11/2016.
+ * Content Provider for this application
  */
 
 public class LiftProvider extends ContentProvider {
@@ -22,6 +27,9 @@ public class LiftProvider extends ContentProvider {
      ************/
     private static final UriMatcher uriMatcher = buildUriMatcher();
 
+    /*******
+     * URI *
+     ******/
     private static final int ADDRESS = 100;
     private static final int EXPENSE = 200;
     private static final int EXPENSE_BY_SHIFT = 201;
@@ -35,6 +43,51 @@ public class LiftProvider extends ContentProvider {
     private static final int SHIFT_BY_PERIOD_SUM = 502;
     private static final int SHIFT_SUM = 503;
 
+    /**************
+     * Selections *
+     *************/
+    private static final String LIFT_BY_SHIFT_SELECTION =
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID + " = ?";
+
+    private static final String SHIFT_BY_ID_SELECTION =
+            LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = ?";
+
+    private static final String SHIFT_BY_PERIOD_SELECTION =
+            LiftContract.ShiftEntry.TABLE_NAME + "."
+            + LiftContract.ShiftEntry.COLUMN_START_DT + " >= ? AND "
+            + LiftContract.ShiftEntry.TABLE_NAME + "."
+            + LiftContract.ShiftEntry.COLUMN_END_DT + " <= ?";
+
+    /***************
+     * Projections *
+     **************/
+    private static final String[] SHIFT_SUM_PROJECTION =
+            new String[]{"sum(" + LiftContract.LiftEntry.TABLE_NAME
+                    + "." + LiftContract.LiftEntry.COLUMN_PRICE + ") "
+                    + "AS " + LiftContract.ShiftEntry.FUNCTION_SUM_PRICE,
+            "count(*) AS " + LiftContract.ShiftEntry.FUNCTION_COUNT_LIFT};
+
+    /****************************
+     * Query Builders for Joins *
+     ***************************/
+    private static final SQLiteQueryBuilder shiftLiftJoinQueryBuilder;
+
+    // This static block works for a static class in the same way as a constructor for a object.
+    // It's executed only once, when the class is loaded in the JVM and no more.
+    static{
+        shiftLiftJoinQueryBuilder = new SQLiteQueryBuilder();
+
+        shiftLiftJoinQueryBuilder.setTables(
+                LiftContract.ShiftEntry.TABLE_NAME + " INNER JOIN "
+                + LiftContract.LiftEntry.TABLE_NAME + " ON "
+                + LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = "
+                + LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID
+        );
+    }
+
+    /*************
+     * Variables *
+     ************/
     private LiftDbHelper liftDbHelper;
 
     /******************
@@ -44,7 +97,7 @@ public class LiftProvider extends ContentProvider {
      * Overriders *
      *************/
     @Override
-    public int delete(Uri uri,
+    public int delete(@NonNull Uri uri,
                       String selection,
                       String[] selectionArgs){
         final SQLiteDatabase sqLiteDatabase = liftDbHelper.getWritableDatabase();
@@ -92,7 +145,7 @@ public class LiftProvider extends ContentProvider {
     }
 
     @Override
-    public String getType(Uri uri){
+    public String getType(@NonNull Uri uri){
         final int match = uriMatcher.match(uri);
 
         switch(match){
@@ -126,7 +179,7 @@ public class LiftProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri,
+    public Uri insert(@NonNull Uri uri,
                       ContentValues contentValues){
         final SQLiteDatabase sqLiteDatabase = liftDbHelper.getWritableDatabase();
         int match = uriMatcher.match(uri);
@@ -141,6 +194,24 @@ public class LiftProvider extends ContentProvider {
 
                 if(id > 0)
                     returnUri = LiftContract.AddressEntry.buildAddressUri(id);
+
+                break;
+            case LIFT:
+                id = sqLiteDatabase.insert(LiftContract.LiftEntry.TABLE_NAME,
+                        null,
+                        contentValues);
+
+                if(id > 0)
+                    returnUri = LiftContract.LiftEntry.buildLiftUri(id);
+
+                break;
+            case SHIFT:
+                id = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
+                        null,
+                        contentValues);
+
+                if(id > 0)
+                    returnUri = LiftContract.ShiftEntry.buildShiftUri(id);
 
                 break;
             default:
@@ -158,28 +229,88 @@ public class LiftProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri,
+    public Cursor query(@NonNull Uri uri,
                         String[] projection,
                         String selection,
                         String[] selectionArgs,
                         String sortOrder){
-        Cursor returnCursor;
+        Cursor returnCursor = null;
+        String tableName = null;
+
         int match = uriMatcher.match(uri);
 
         SQLiteDatabase sqLiteDatabase = liftDbHelper.getReadableDatabase();
 
         switch(match){
             case ADDRESS:
-                returnCursor = sqLiteDatabase.query(LiftContract.AddressEntry.TABLE_NAME,
+                tableName = LiftContract.AddressEntry.TABLE_NAME;
+
+                break;
+            case LIFT:
+                tableName = LiftContract.LiftEntry.TABLE_NAME;
+
+                break;
+            case LIFT_BY_SHIFT:
+                tableName = LiftContract.LiftEntry.TABLE_NAME;
+                selection = LIFT_BY_SHIFT_SELECTION;
+                selectionArgs = getLiftByIdSelectionArgs(uri);
+
+                break;
+            case SHIFT:
+                tableName = LiftContract.ShiftEntry.TABLE_NAME;
+
+                break;
+            case SHIFT_BY_PERIOD:
+                tableName = LiftContract.ShiftEntry.TABLE_NAME;
+                selection = SHIFT_BY_PERIOD_SELECTION;
+                selectionArgs = getShiftByPeriodSelectionArgs(uri);
+
+                break;
+            case SHIFT_BY_PERIOD_SUM:
+                projection = SHIFT_SUM_PROJECTION;
+                selection = SHIFT_BY_PERIOD_SELECTION;
+                selectionArgs = getShiftByPeriodSelectionArgs(uri);
+
+                break;
+            case SHIFT_SUM:
+                projection = SHIFT_SUM_PROJECTION;
+                selection = SHIFT_BY_ID_SELECTION;
+                selectionArgs = getShiftByIdSelectionArgs(uri);
+
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
+        }
+
+
+        switch (match){
+            case ADDRESS:
+            case LIFT:
+            case LIFT_BY_SHIFT:
+            case SHIFT:
+            case SHIFT_BY_PERIOD:
+                // It executes non join queries
+                returnCursor = sqLiteDatabase.query(tableName,
                         projection,
                         selection,
                         selectionArgs,
                         null,
                         null,
                         sortOrder);
+
                 break;
-            default:
-                throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
+            case SHIFT_BY_PERIOD_SUM:
+            case SHIFT_SUM:
+                // It executes Shift-Lift join queries
+                returnCursor = shiftLiftJoinQueryBuilder.query(liftDbHelper.getReadableDatabase(),
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+
+                break;
         }
 
         returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
@@ -195,27 +326,36 @@ public class LiftProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri,
+    public int update(@NonNull Uri uri,
                       ContentValues contentValues,
                       String selection,
                       String[] selectionArgs){
         final SQLiteDatabase sqLiteDatabase = liftDbHelper.getWritableDatabase();
         int match = uriMatcher.match(uri);
         int numAffectedRows;
+        String tableName;
 
         switch(match){
             case ADDRESS:
-                numAffectedRows = sqLiteDatabase.update(LiftContract.AddressEntry.TABLE_NAME,
-                        contentValues,
-                        selection,
-                        selectionArgs);
+                tableName = LiftContract.AddressEntry.TABLE_NAME;
+
+                break;
+            case LIFT:
+                tableName = LiftContract.LiftEntry.TABLE_NAME;
+
+                break;
+            case SHIFT:
+                tableName = LiftContract.ShiftEntry.TABLE_NAME;
 
                 break;
             default:
-                numAffectedRows = 0;
-
                 throw new UnsupportedOperationException("Unknown URI: " + uri.toString());
         }
+
+        numAffectedRows = sqLiteDatabase.update(tableName,
+                contentValues,
+                selection,
+                selectionArgs);
 
         if(numAffectedRows > 0)
             getContext().getContentResolver().notifyChange(uri, null);
@@ -296,5 +436,34 @@ public class LiftProvider extends ContentProvider {
                 SHIFT_SUM);
 
         return uriMatcher;
+    }
+
+    private String[] getLiftByIdSelectionArgs(Uri uri){
+        long shiftId = LiftContract.LiftEntry.getShiftIdFromUri(uri);
+
+        String[] selectionArgs = new String[]{Long.toString(shiftId)};
+
+        return selectionArgs;
+    }
+
+    private String[] getShiftByPeriodSelectionArgs(Uri uri){
+        Calendar startDate =  LiftContract.ShiftEntry.getStartDateFromUri(uri);
+        Calendar endDate = LiftContract.ShiftEntry.getEndDateFromUri(uri);
+
+        long startDateMillis = startDate.getTimeInMillis();
+        long endDateMillis = endDate.getTimeInMillis();
+
+        String[] selectionArgs = new String[]{Long.toString(startDateMillis),
+                Long.toString(endDateMillis)};
+
+        return selectionArgs;
+    }
+
+    private String[] getShiftByIdSelectionArgs(Uri uri){
+        long shiftId = LiftContract.ShiftEntry.getIdFromUri(uri);
+
+        String[] selectionArgs = new String[]{Long.toString(shiftId)};
+
+        return selectionArgs;
     }
 }
