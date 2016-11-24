@@ -476,7 +476,7 @@ public class TestDb {
     /*
      * It generates a ContentValues object for the Lift where:
      *  - Start Date: Today 1:31
-     *  - End Date: 1:43 min ago
+     *  - End Date: Today 1:43
      *  - Price: 12.20
      *  - Number of Passengers: 2
      *  - Shift Id: @param
@@ -488,7 +488,7 @@ public class TestDb {
 
         GregorianCalendar endDate = new GregorianCalendar();
         endDate.set(Calendar.HOUR_OF_DAY, 1);
-        endDate.set(Calendar.MINUTE, - 43);
+        endDate.set(Calendar.MINUTE, 43);
 
         //float isn't precise
         BigDecimal price = new BigDecimal("12.2");
@@ -504,22 +504,24 @@ public class TestDb {
     /*
      * It generates a ContentValues object for the Lift where:
      *  - Start Date: d-2 22:13
-     *  - End Date: d-2 22:12
+     *  - End Date: d-2 22:22
      *  - Price: 10.00
      *  - Number of Passengers: 2
      *  - Shift Id: @param
      */
     public static ContentValues getLiftValuesSample3(long shiftId){
         GregorianCalendar startDate = new GregorianCalendar();
-        startDate.set(Calendar.HOUR_OF_DAY, 1);
-        startDate.set(Calendar.MINUTE, 31);
+        startDate.add(Calendar.DAY_OF_YEAR, -2);
+        startDate.set(Calendar.HOUR_OF_DAY, 22);
+        startDate.set(Calendar.MINUTE, 13);
 
         GregorianCalendar endDate = new GregorianCalendar();
-        endDate.set(Calendar.HOUR_OF_DAY, 1);
-        endDate.set(Calendar.MINUTE, - 43);
+        endDate.add(Calendar.DAY_OF_YEAR, -2);
+        endDate.set(Calendar.HOUR_OF_DAY, 22);
+        endDate.set(Calendar.MINUTE, 22);
 
         //float isn't precise
-        BigDecimal price = new BigDecimal("12.2");
+        BigDecimal price = new BigDecimal("10.0");
         int numberOfPassengers = 2;
 
         return getLiftValues(startDate,
@@ -532,23 +534,25 @@ public class TestDb {
     /*
      * It generates a ContentValues object for the Lift where:
      *  - Start Date: d -2 11:58
-     *  - End Date: d -1 00:03 min ago
+     *  - End Date: d -1 00:03
      *  - Price: 5.00
      *  - Number of Passengers: 1
      *  - Shift Id: @param
      */
     public static ContentValues getLiftValuesSample4(long shiftId){
         GregorianCalendar startDate = new GregorianCalendar();
-        startDate.set(Calendar.HOUR_OF_DAY, 1);
-        startDate.set(Calendar.MINUTE, 31);
+        startDate.add(Calendar.DAY_OF_YEAR, -2);
+        startDate.set(Calendar.HOUR_OF_DAY, 23);
+        startDate.set(Calendar.MINUTE, 58);
 
         GregorianCalendar endDate = new GregorianCalendar();
-        endDate.set(Calendar.HOUR_OF_DAY, 1);
-        endDate.set(Calendar.MINUTE, - 43);
+        endDate.add(Calendar.DAY_OF_YEAR, -1);
+        endDate.set(Calendar.HOUR_OF_DAY, 0);
+        endDate.set(Calendar.MINUTE, 3);
 
         //float isn't precise
-        BigDecimal price = new BigDecimal("12.2");
-        int numberOfPassengers = 2;
+        BigDecimal price = new BigDecimal("5.0");
+        int numberOfPassengers = 1;
 
         return getLiftValues(startDate,
                 endDate,
@@ -567,15 +571,17 @@ public class TestDb {
      */
     public static ContentValues getLiftValuesSample5(long shiftId){
         GregorianCalendar startDate = new GregorianCalendar();
+        startDate.add(Calendar.DAY_OF_YEAR, -14);
         startDate.set(Calendar.HOUR_OF_DAY, 1);
         startDate.set(Calendar.MINUTE, 31);
 
         GregorianCalendar endDate = new GregorianCalendar();
+        endDate.add(Calendar.DAY_OF_YEAR, -14);
         endDate.set(Calendar.HOUR_OF_DAY, 1);
         endDate.set(Calendar.MINUTE, - 43);
 
         //float isn't precise
-        BigDecimal price = new BigDecimal("12.2");
+        BigDecimal price = new BigDecimal("50.0");
         int numberOfPassengers = 2;
 
         return getLiftValues(startDate,

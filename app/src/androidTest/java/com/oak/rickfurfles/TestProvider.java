@@ -23,6 +23,7 @@ import java.util.GregorianCalendar;
 
 /**
  * Created by Alex on 09/11/2016.
+ * This class tests LiftProvider class
  */
 
 @RunWith(AndroidJUnit4.class)
@@ -268,6 +269,10 @@ public class TestProvider {
                 LiftContract.AddressEntry._ID + " = ?",
                 new String[]{Long.toString(addressId)});
 
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
         cursor = appContext.getContentResolver().query(LiftContract.AddressEntry.CONTENT_URI,
                 null, null, null, null);
 
@@ -282,29 +287,509 @@ public class TestProvider {
     }
 
     @Test
-    public void crudExpenseByShift(){
-        //ToDo: Implement crudExpenseByShift()
-    }
-
-    @Test
     public void crudLift(){
-        //ToDo: Implement crudLift()
+        /************************
+         * Insert FK Dependency *
+         ***********************/
+        // Insert Shift 1
+        ContentValues shiftValues1 = TestDb.getShiftValuesSample1();
+
+        Uri shiftUri1 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues1);
+
+        long shiftId1 = ContentUris.parseId(shiftUri1);
+        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 1",
+                shiftId1 > 0);
+
+        // Insert Shift 2
+        ContentValues shiftValues2 = TestDb.getShiftValuesSample2();
+
+        Uri shiftUri2 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues2);
+
+        long shiftId2 = ContentUris.parseId(shiftUri2);
+
+        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 2.",
+                shiftId2 > 0);
+
+        // Insert Shift 3
+        ContentValues shiftValues3 = TestDb.getShiftValuesSample3();
+
+        Uri shiftUri3 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues3);
+
+        long shiftId3 = ContentUris.parseId(shiftUri3);
+
+        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 3.",
+                shiftId3 > 0);
+
+        /***************
+         * Create Lift *
+         **************/
+        // Lift 1
+        // Register a ContentObserver
+        TestContentObserver tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.LiftEntry.CONTENT_URI,
+                true,
+                tco);
+
+        // Insert Lift
+        ContentValues liftValues1 = TestDb.getLiftValuesSample1(shiftId1);
+        Uri liftUri1 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues1);
+
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        // Check if the Lift was inserted
+        long liftId1 = ContentUris.parseId(liftUri1);
+        liftValues1.put(LiftContract.LiftEntry._ID, liftId1);
+
+        Assert.assertTrue("Error: Fail to inert Lift 1. Unexpected Id returned.", liftId1 > 0);
+
+        // Lift 2
+        ContentValues liftValues2 = TestDb.getLiftValuesSample2(shiftId1);
+        Uri liftUri2 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues2);
+
+        long liftId2 = ContentUris.parseId(liftUri2);
+        liftValues2.put(LiftContract.LiftEntry._ID, liftId2);
+
+        Assert.assertTrue("Error: Fail to insert Lift 2. Unexpected Id returned.", liftId2 > 0);
+
+        // Lift 3
+        ContentValues liftValues3 = TestDb.getLiftValuesSample3(shiftId2);
+        Uri liftUri3 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues3);
+
+        long liftId3 = ContentUris.parseId(liftUri3);
+        liftValues3.put(LiftContract.LiftEntry._ID, liftId3);
+
+        Assert.assertTrue("Error: Fail to insert Lift 3. Unexpected Id returned.", liftId3 > 0);
+
+        // Lift 4
+        ContentValues liftValues4 = TestDb.getLiftValuesSample4(shiftId2);
+        Uri liftUri4 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues4);
+
+        long liftId4 = ContentUris.parseId(liftUri4);
+        liftValues4.put(LiftContract.LiftEntry._ID, liftId4);
+
+        Assert.assertTrue("Error: Fail to insert Lift 4. Unexpected Id returned.", liftId4 > 0);
+
+        // Lift 5
+        ContentValues liftValues5 = TestDb.getLiftValuesSample5(shiftId3);
+        Uri liftUri5 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues5);
+
+        long liftId5 = ContentUris.parseId(liftUri5);
+        liftValues5.put(LiftContract.LiftEntry._ID, liftId5);
+
+        Assert.assertTrue("Error: Fail to insert Lift 5. Unexpected Id returned.", liftId5 > 0);
+
+        /*************
+         * Read Lift *
+         ************/
+        // Query all Lifts
+        Cursor cursor = appContext.getContentResolver().query(LiftContract.LiftEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertTrue("Error: Lift 1 is not present into all Lifts cursor.",
+                TestUtilities.isValidCursor(cursor, liftValues1));
+
+        Assert.assertTrue("Error: Lift 2 is not present into all Lifts cursor.",
+                TestUtilities.isValidCursor(cursor, liftValues2));
+
+        Assert.assertTrue("Error: Lift 3 is not present into all Lifts cursor.",
+                TestUtilities.isValidCursor(cursor, liftValues3));
+
+        Assert.assertTrue("Error: Lift 4 is not present into all Lifts cursor.",
+                TestUtilities.isValidCursor(cursor, liftValues4));
+
+        Assert.assertTrue("Error: Lift 5 is not present into all Lifts cursor.",
+                TestUtilities.isValidCursor(cursor, liftValues5));
+
+        cursor.close();
+
+        // Query Lift by Shift
+        Uri liftByShiftUri = LiftContract.LiftEntry.buildLiftByShiftUri(shiftId1);
+
+        cursor = appContext.getContentResolver().query(liftByShiftUri,
+                null, null, null, null);
+
+        Assert.assertTrue("Error: Lift 1 is not present into cursor for Shift 1.",
+                TestUtilities.isValidCursor(cursor, liftValues1));
+
+        Assert.assertTrue("Error: Lift 2 is not present into cursor for Shift 1.",
+                TestUtilities.isValidCursor(cursor, liftValues2));
+
+        Assert.assertEquals("Error: Unexpected number of records returned for Lift by Shift 1 query.",
+                2, cursor.getCount());
+
+        /***************
+         * Update Lift *
+         **************/
+        // Register a observer for the cursor to make sure that content provider is notifying the
+        // observers as expected
+        tco = TestContentObserver.getTestContentObserver();
+        cursor.registerContentObserver(tco);
+
+        //Update
+        ContentValues updateLift1Values = new ContentValues(liftValues1);
+        updateLift1Values.put(LiftContract.LiftEntry.COLUMN_PRICE, "10.5");
+
+        int numAffectedRows = appContext.getContentResolver().update(LiftContract.LiftEntry.CONTENT_URI,
+                updateLift1Values,
+                LiftContract.LiftEntry._ID + " = ?",
+                new String[]{Long.toString(liftId1)});
+
+        // Check the amount of records updated
+        Assert.assertEquals("Error: Unexpected amount of records updated.",
+                1, numAffectedRows);
+
+        // Check if the ContentObserver has been called.
+        tco.waitForNotificationOrFail();
+
+        cursor.unregisterContentObserver(tco);
+        cursor.close();
+
+        // Check if the update is reflected into Cursor
+        cursor = appContext.getContentResolver().query(LiftContract.LiftEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertTrue("Error: The update record is not reflected into the cursor.",
+                TestUtilities.isValidCursor(cursor, updateLift1Values));
+
+        cursor.close();
+
+        /***************
+         * Delete Lift *
+         **************/
+        // Register a observer for to make sure that content provider is notifying the
+        // observers as expected
+        tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.LiftEntry.CONTENT_URI,
+                true,
+                tco);
+
+        numAffectedRows = appContext.getContentResolver().delete(LiftContract.LiftEntry.CONTENT_URI,
+                LiftContract.LiftEntry._ID + " = ?",
+                new String[]{Long.toString(liftId1)});
+
+        Assert.assertEquals("Error: Unexpected amount of records has been deleted.",
+                1,
+                numAffectedRows);
+
+        // Check if the ContentObserver has been called.
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        // Check if the deleted record still present into db
+        cursor = appContext.getContentResolver().query(LiftContract.LiftEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertFalse("Error: Lift 1 still into db after deletion.",
+                TestUtilities.isValidCursor(cursor, updateLift1Values));
+
+        cursor.close();
     }
 
     @Test
-    public void crudLiftByShift(){
-        //ToDo: Implement crudLiftByShift()
+    public void curdLiftAddress(){
+        //ToDo: Implement crudLiftAddress()
     }
 
     @Test
     public void crudShift(){
-        //ToDo: Implement crudShift()
+        /****************
+         * Create Shift *
+         ***************/
+        // Insert Shift 1
+        //Get ContentValues
+        ContentValues shift1Values = TestDb.getShiftValuesSample1();
+
+        //Register a ContentObserver
+        TestContentObserver tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.ShiftEntry.CONTENT_URI,
+                true,
+                tco);
+
+        // Insert address
+        Uri shift1Uri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shift1Values);
+
+        // Check if the ContentObserver was called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        // Check if insertion 1 has been made
+        long shift1Id = ContentUris.parseId(shift1Uri);
+        shift1Values.put(LiftContract.ShiftEntry._ID, shift1Id);
+
+        Assert.assertTrue("Error: It wasn't possible to insert Shift 1. Invalid id returned.",
+                shift1Id > 0);
+
+        // Insert Shift 2
+        ContentValues shift2Values = TestDb.getShiftValuesSample2();
+
+        Uri shift2Uri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shift2Values);
+
+        // Check if insertion 2 has been made
+        long shift2Id = ContentUris.parseId(shift2Uri);
+        shift2Values.put(LiftContract.ShiftEntry._ID, shift2Id);
+
+        Assert.assertTrue("Error: It wasn't possible to insert Shift 2. Invalid id returned.",
+                shift2Id > 0);
+
+        // Insert Shift 3
+        ContentValues shift3Values = TestDb.getShiftValuesSample3();
+
+        Uri shift3Uri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shift3Values);
+
+        // Check if insertion 3 has been made
+        long shift3Id = ContentUris.parseId(shift3Uri);
+        shift3Values.put(LiftContract.ShiftEntry._ID, shift3Id);
+
+        Assert.assertTrue("Error: It wasn't possible to insert Shift 3. Invalid id returned.",
+                shift3Id > 0);
+
+        /**************
+         * Read Shift *
+         *************/
+        // Query All Shifts
+        Cursor cursor = appContext.getContentResolver().query(LiftContract.ShiftEntry.CONTENT_URI,
+                null, null, null, null);
+
+        // Check if the cursor contains the inserted records
+        Assert.assertTrue("Error: Shift 1 is not present into the cursor.",
+                TestUtilities.isValidCursor(cursor, shift1Values));
+
+        Assert.assertTrue("Error: Shift 2 is not present into the cursor.",
+                TestUtilities.isValidCursor(cursor, shift2Values));
+
+        Assert.assertTrue("Error: Shift 3 is not present into the cursor.",
+                TestUtilities.isValidCursor(cursor, shift3Values));
+
+        cursor.close();
+
+        // Query Shift by period
+        Calendar startDate = new GregorianCalendar();
+        startDate.add(Calendar.DAY_OF_YEAR, -5);
+
+        Calendar endDate = new GregorianCalendar();
+        endDate.add(Calendar.DAY_OF_YEAR, 1);
+
+        Uri shiftByPeriodUri = LiftContract.ShiftEntry.buildShiftPeriodUri(startDate, endDate);
+
+        cursor = appContext.getContentResolver().query(shiftByPeriodUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Unexpected number of Records returned from Shift by Period query.",
+                2, cursor.getCount());
+
+        Assert.assertTrue("Error: Shift 1 should be present into Shift by Period cursor.",
+                TestUtilities.isValidCursor(cursor, shift1Values));
+
+        Assert.assertTrue("Error: Shift 2 should be present into Shift by period cursor.",
+                TestUtilities.isValidCursor(cursor, shift2Values));
+
+        Assert.assertFalse("Error: Shift 3 shouldn't be present into Shift by period cursor.",
+                TestUtilities.isValidCursor(cursor, shift3Values));
+
+        /****************
+         * Update Shift *
+         ***************/
+        // Register a ContentObserver for the cursor to make sure that the ContentProvider is
+        // notifying the observers as expected.
+        tco = TestContentObserver.getTestContentObserver();
+        cursor.registerContentObserver(tco);
+
+        // Get ContentValues
+        ContentValues updatedShift1Values = new ContentValues(shift1Values);
+        updatedShift1Values.put(LiftContract.ShiftEntry.COLUMN_END_DT, "1479878000000");
+
+        // Update
+        int numAffectedRows = appContext.getContentResolver().update(LiftContract.ShiftEntry.CONTENT_URI,
+                updatedShift1Values,
+                LiftContract.ShiftEntry._ID + " = ?",
+                new String[]{Long.toString(shift1Id)}
+                );
+
+        // Check if the insertion has been made
+        Assert.assertEquals("Error: Problems to update Shift 1", 1, numAffectedRows);
+
+        // Check if the ContentObserver was notified
+        tco.waitForNotificationOrFail();
+
+        cursor.unregisterContentObserver(tco);
+
+        cursor.close();
+
+        // Check if the record is correctly updated
+        cursor = appContext.getContentResolver().query(LiftContract.ShiftEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertTrue("Error: The updated values for Shift 1 are not reflected into db.",
+                TestUtilities.isValidCursor(cursor, updatedShift1Values));
+
+        /****************
+         * Delete Shift *
+         ***************/
+        // Check if the record that will be deleted is present into the Cursor
+        Assert.assertTrue("Error: Shift that would be deleted is not present into db.",
+                TestUtilities.isValidCursor(cursor, shift2Values));
+
+        // Register a ContentObserver
+        tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.ShiftEntry.CONTENT_URI,
+                true,
+                tco);
+
+        // Delete Shift 2
+        numAffectedRows = appContext.getContentResolver().delete(LiftContract.ShiftEntry.CONTENT_URI,
+                LiftContract.ShiftEntry._ID + " = ?",
+                new String[]{Long.toString(shift2Id)});
+
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        // Check the amount of deleted records
+        Assert.assertEquals("Error: Unexpected amount of Shift records has been deleted.",
+                1, numAffectedRows);
+
+        // Check if the cursor still containing the Shift 2
+        cursor = appContext.getContentResolver().query(LiftContract.ShiftEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertFalse("Error: The Shift 2 record still present into db after deletion.",
+                TestUtilities.isValidCursor(cursor, shift2Values));
+
+        Assert.assertEquals("Error: Unexpected number of Shift present into db after deletion.",
+                2, cursor.getCount());
     }
 
     @Test
-    public void crudShiftByPeriod(){
-        //ToDo: Implement crudShiftByPeriod()
+    public void queryShiftSum(){
+        /************************
+         * Insert FK dependency *
+         ***********************/
+        // Insert Shift 1
+        ContentValues shiftValues1 = TestDb.getShiftValuesSample1();
 
+        Uri shiftUri1 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues1);
+
+        long shiftId1 = ContentUris.parseId(shiftUri1);
+        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 1",
+                shiftId1 > 0);
+
+        // Insert Shift 2
+        ContentValues shiftValues2 = TestDb.getShiftValuesSample2();
+
+        Uri shiftUri2 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues2);
+
+        long shiftId2 = ContentUris.parseId(shiftUri2);
+
+        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 2.",
+                shiftId2 > 0);
+
+        // Insert Shift 3
+        ContentValues shiftValues3 = TestDb.getShiftValuesSample3();
+
+        Uri shiftUri3 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues3);
+
+        long shiftId3 = ContentUris.parseId(shiftUri3);
+
+        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 3.",
+                shiftId3 > 0);
+
+        /****************
+         * Insert Lifts *
+         ***************/
+        // Lift 1
+        // Insert Lift
+        ContentValues liftValues1 = TestDb.getLiftValuesSample1(shiftId1);
+        Uri liftUri1 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues1);
+
+        // Check if the Lift was inserted
+        long liftId1 = ContentUris.parseId(liftUri1);
+        liftValues1.put(LiftContract.LiftEntry._ID, liftId1);
+
+        Assert.assertTrue("Error: Fail to inert Lift 1. Unexpected Id returned.", liftId1 > 0);
+
+        // Lift 2
+        ContentValues liftValues2 = TestDb.getLiftValuesSample2(shiftId1);
+        Uri liftUri2 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues2);
+
+        long liftId2 = ContentUris.parseId(liftUri2);
+        liftValues2.put(LiftContract.LiftEntry._ID, liftId2);
+
+        Assert.assertTrue("Error: Fail to insert Lift 2. Unexpected Id returned.", liftId2 > 0);
+
+        // Lift 3
+        ContentValues liftValues3 = TestDb.getLiftValuesSample3(shiftId2);
+        Uri liftUri3 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues3);
+
+        long liftId3 = ContentUris.parseId(liftUri3);
+        liftValues3.put(LiftContract.LiftEntry._ID, liftId3);
+
+        Assert.assertTrue("Error: Fail to insert Lift 3. Unexpected Id returned.", liftId3 > 0);
+
+        // Lift 4
+        ContentValues liftValues4 = TestDb.getLiftValuesSample4(shiftId2);
+        Uri liftUri4 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues4);
+
+        long liftId4 = ContentUris.parseId(liftUri4);
+        liftValues4.put(LiftContract.LiftEntry._ID, liftId4);
+
+        Assert.assertTrue("Error: Fail to insert Lift 4. Unexpected Id returned.", liftId4 > 0);
+
+        // Lift 5
+        ContentValues liftValues5 = TestDb.getLiftValuesSample5(shiftId3);
+        Uri liftUri5 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues5);
+
+        long liftId5 = ContentUris.parseId(liftUri5);
+        liftValues5.put(LiftContract.LiftEntry._ID, liftId5);
+
+        Assert.assertTrue("Error: Fail to insert Lift 5. Unexpected Id returned.", liftId5 > 0);
+
+        /*********
+         * Query *
+         ********/
+        // Shift by Period Sum
+
+        // Shift Sum
+        Uri shiftSumUri = LiftContract.ShiftEntry.buildShiftSumUri(shiftId1);
+
+        Cursor cursor = appContext.getContentResolver().query(shiftSumUri,
+                null, null, null, null);
+
+        int sumPriceIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.FUNCTION_SUM_PRICE);
+        int countLiftIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.FUNCTION_COUNT_LIFT);
+
+        cursor.moveToFirst();
+        double cvSumPrice = liftValues1.getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + liftValues2.getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
+        double returnedSumPrice = cursor.getDouble(sumPriceIndex);
+
+        Assert.assertEquals("Error: Unexpected sum(price).", cvSumPrice, returnedSumPrice);
+
+        int countLift = cursor.getInt(countLiftIndex);
+
+        Assert.assertEquals("Error: Unexpected Lifts count().", 2, countLift);
+
+        cursor.close();
     }
 
     /*******************
