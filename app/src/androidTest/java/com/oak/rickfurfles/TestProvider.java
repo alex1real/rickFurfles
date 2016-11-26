@@ -283,6 +283,34 @@ public class TestProvider {
 
     @Test
     public void crudExpense(){
+        /**************************
+         * Insert FK Dependencies *
+         *************************/
+        // Insert Shift 1
+        // Insert Shift 2
+
+        /******************
+         * Create Expense *
+         *****************/
+        // Insert Expense 1
+        // Insert Expense 2
+
+        /****************
+         * Read Expense *
+         ***************/
+        // Query all Expenses
+        // Query Expenses from Shift 1
+
+        /******************
+         * Update Expense *
+         *****************/
+        // Update Expense 2
+
+        /******************
+         * Delete Expense *
+         *****************/
+        // Delete Expense 2
+
         //ToDo: Implement crudExpense()
     }
 
@@ -497,6 +525,272 @@ public class TestProvider {
 
     @Test
     public void curdLiftAddress(){
+        /**************************
+         * Insert FK Dependencies *
+         *************************/
+        // Insert Shift
+        ContentValues shiftValues = TestDb.getShiftValuesSample1();
+
+        Uri shiftUri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues);
+
+        long shiftId = ContentUris.parseId(shiftUri);
+
+        Assert.assertTrue("Error: Fail to insert Shift. Unexpected id returend.",
+                shiftId > 0);
+
+        // Insert Lift 1
+        ContentValues liftValues1 = TestDb.getLiftValuesSample1(shiftId);
+
+        Uri liftUri1 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues1);
+
+        long liftId1 = ContentUris.parseId(liftUri1);
+
+        Assert.assertTrue("Error: Fail to insert Lift 1. Unexpected id returend.",
+                liftId1 > 0);
+
+        // Insert Lift 2
+        ContentValues liftValues2 = TestDb.getLiftValuesSample2(shiftId);
+
+        Uri liftUri2 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
+                liftValues2);
+
+        long liftId2 = ContentUris.parseId(liftUri2);
+
+        Assert.assertTrue("Error: Fail to insert Lift 2. Unexpected id returend.",
+                liftId2 > 0);
+
+        // Insert Address 1
+        ContentValues addressValues1 = TestDb.getAddressValuesSample1();
+
+        Uri addressUri1 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
+                addressValues1);
+
+        long addressId1 = ContentUris.parseId(addressUri1);
+
+        Assert.assertTrue("Error: Fail to insert Address 1. Unexpected id returned.",
+                addressId1 > 0);
+
+        // Insert Address 2
+        ContentValues addressValues2 = TestDb.getAddressValuesSample2();
+
+        Uri addressUri2 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
+                addressValues2);
+
+        long addressId2 = ContentUris.parseId(addressUri2);
+
+        Assert.assertTrue("Error: Fail to insert Address 2. Unexpected id returned.",
+                addressId2 > 0);
+
+        // Insert Address 3
+        ContentValues addressValues3 = TestDb.getAddressValuesSample3();
+
+        Uri addressUri3 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
+                addressValues3);
+
+        long addressId3 = ContentUris.parseId(addressUri3);
+
+        Assert.assertTrue("Error: Fail to insert Address 3. Unexpected id returned.",
+                addressId3 > 0);
+
+        // Insert Address 4
+        ContentValues addressValues4 = TestDb.getAddressValuesSample4();
+
+        Uri addressUri4 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
+                addressValues4);
+
+        long addressId4 = ContentUris.parseId(addressUri4);
+
+        Assert.assertTrue("Error: Fail to insert Address 4. Unexpected id returned.",
+                addressId4 > 0);
+
+        /**********************
+         * Create LiftAddress *
+         *********************/
+        // Insert LiftAddress 1
+        // Register ContentObsever
+        TestContentObserver tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.LiftAddressEntry.CONTENT_URI,
+                true,
+                tco);
+
+        // Insert LiftAddress
+        // Spire of Dublin
+        ContentValues liftAddressValues1 = TestDb.getLiftAddressValuesSample1(liftId1, addressId1);
+
+        Uri liftAddressUri1 = appContext.getContentResolver().insert(LiftContract.LiftAddressEntry.CONTENT_URI,
+                liftAddressValues1);
+
+        // Check if ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        // Check if LiftAddress has been inserted
+        long liftAddressId1 = ContentUris.parseId(liftAddressUri1);
+        liftAddressValues1.put(LiftContract.LiftAddressEntry._ID, liftAddressId1);
+
+        Assert.assertTrue("Error: Fail to insert LiftAddress1. Unexpected id returned.",
+                liftAddressId1 > 0);
+
+        // Insert LiftAddress 2
+        // Opium Rooms
+        ContentValues liftAddressValues2 = TestDb.getLiftAddressValuesSample2(liftId1, addressId2);
+
+        Uri liftAddressUri2 = appContext.getContentResolver().insert(LiftContract.LiftAddressEntry.CONTENT_URI,
+                liftAddressValues2);
+
+        long liftAddressId2 = ContentUris.parseId(liftAddressUri2);
+        liftAddressValues2.put(LiftContract.LiftAddressEntry._ID, liftAddressId2);
+
+        Assert.assertTrue("Error: Fail to insert LiftAddress 2. Unexpected id returned.",
+                liftAddressId2 > 0);
+
+        // Insert LiftAddress 3
+        // The George
+        ContentValues liftAddressValues3 = TestDb.getLiftAddressValuesSample3(liftId2, addressId3);
+
+        Uri liftAddressUri3 = appContext.getContentResolver().insert(LiftContract.LiftAddressEntry.CONTENT_URI,
+                liftAddressValues3);
+
+        long liftAddressId3 = ContentUris.parseId(liftAddressUri3);
+        liftAddressValues3.put(LiftContract.LiftAddressEntry._ID, liftAddressId3);
+
+        Assert.assertTrue("Error: Fail to insert LiftAddress 3. Unexpected id returned.",
+                liftAddressId3 > 0);
+
+        // Insert LiftAddress 4
+        // Dicey's
+        ContentValues liftAddressValues4 = TestDb.getLiftAddressValuesSample4(liftId2, addressId4);
+
+        Uri liftAddressUri4 = appContext.getContentResolver().insert(LiftContract.LiftAddressEntry.CONTENT_URI,
+                liftAddressValues4);
+
+        long liftAddress4Id = ContentUris.parseId(liftAddressUri4);
+        liftAddressValues4.put(LiftContract.LiftAddressEntry._ID, liftAddress4Id);
+        liftAddress4Id = ContentUris.parseId(liftAddressUri4);
+
+        Assert.assertTrue("Error: Fail to insert LiftAddress 4. Unexpected id returned.",
+                liftAddress4Id > 0);
+
+        /********************
+         * Read LiftAddress *
+         *******************/
+        // Query All LiftAddress
+        Cursor cursor = appContext.getContentResolver().query(LiftContract.LiftAddressEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Query fail. Unexpected amount of records returned."
+                , 4, cursor.getCount());
+
+        // Check if LiftAddress 2 is present in cursor.
+        Assert.assertTrue("Error: It wasn't possible to find LiftAddress 2 in Cursor.",
+                TestUtilities.isValidCursor(cursor, liftAddressValues2));
+
+        cursor.close();
+
+        // Query LiftAddress by Lift
+        Uri liftAddressByLiftUri = LiftContract.LiftAddressEntry.buildLiftAddressByLiftUri(liftId2);
+
+        cursor = appContext.getContentResolver().query(liftAddressByLiftUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Query LiftAddress by Lift has been failed." +
+                " Unexpected amount of records returned.",
+                2, cursor.getCount());
+
+        Assert.assertTrue("Error: LiftAddress 3 is not present in Cursor LiftAddress by Lift.",
+                TestUtilities.isValidCursor(cursor, liftAddressValues3));
+
+        Assert.assertTrue("Error: LiftAddress 4 is not present in Cursor LiftAddress by Lift.",
+                TestUtilities.isValidCursor(cursor, liftAddressValues4));
+
+        cursor.close();
+
+        // Query LiftAddress by Lift and Type
+        Uri liftAddressByLiftTypeUri = LiftContract.LiftAddressEntry.buildLiftAddressByLiftTypeUri(liftId1,
+                "HOP_ON");
+
+        cursor = appContext.getContentResolver().query(liftAddressByLiftTypeUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Fail to query LiftAddress by Lift and Type." +
+                " Unexpected amount of records returned.",
+                1, cursor.getCount());
+
+        Assert.assertTrue("Error: LiftAddress 1 is not present in Cursor LiftAddress by Lift and Type.",
+                TestUtilities.isValidCursor(cursor, liftAddressValues1));
+
+        cursor.close();
+
+        /**********************
+         * Update LiftAddress *
+         *********************/
+        // Update LiftAddress 1
+        // Register a ContentObserver
+        tco = TestContentObserver.getTestContentObserver();
+        cursor.registerContentObserver(tco);
+
+        // Update LiftAddress 1
+        ContentValues updatedLiftAddress1Values = new ContentValues(liftAddressValues1);
+        updatedLiftAddress1Values.put(LiftContract.LiftAddressEntry.COLUMN_POI, "Quase Spire");
+
+        int numAffectedRows = appContext.getContentResolver().update(LiftContract.LiftAddressEntry.CONTENT_URI,
+                updatedLiftAddress1Values,
+                LiftContract.LiftAddressEntry.TABLE_NAME
+                        + "." + LiftContract.LiftAddressEntry._ID + " = ?",
+                new String[]{Long.toString(liftAddressId1)});
+
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(tco);
+        cursor.close();
+
+        // Check if the update has been made
+        Assert.assertEquals("Error: Fail to update LiftAddress 1. Unexpected number of records affected.",
+                1, numAffectedRows);
+
+        cursor = appContext.getContentResolver().query(liftAddressByLiftTypeUri,
+                null, null, null, null);
+
+        Assert.assertTrue("Error: Fail to update LiftAddress 1. Changes are not reflected into db.",
+                TestUtilities.isValidCursor(cursor, updatedLiftAddress1Values));
+
+        /**********************
+         * Delete LiftAddress *
+         *********************/
+        // Delete LiftAddress 1
+        // Register a ContentObserver
+        tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.LiftAddressEntry.CONTENT_URI,
+                true,
+                tco);
+
+        numAffectedRows = appContext.getContentResolver().delete(LiftContract.LiftAddressEntry.CONTENT_URI,
+                LiftContract.LiftAddressEntry.TABLE_NAME
+                        + "." + LiftContract.LiftAddressEntry._ID + " = ?",
+                new String[]{Long.toString(liftAddressId1)});
+
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+        cursor.close();
+
+        // Check if the record has been deleted
+        Assert.assertEquals("Error: Fail to delete LiftAddress 1. Unexpected numAffectedRows returned.",
+                1, numAffectedRows);
+        
+        cursor = appContext.getContentResolver().query(LiftContract.LiftAddressEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Fail to delete LiftAddress 1. Unexpected number of records present in cursor.",
+                3, cursor.getCount());
+
+        Assert.assertFalse("Error: Fail to delete LiftAddress 1. Record still present in db.",
+                TestUtilities.isValidCursor(cursor, updatedLiftAddress1Values));
+
+        cursor.close();
+
         //ToDo: Implement crudLiftAddress()
     }
 

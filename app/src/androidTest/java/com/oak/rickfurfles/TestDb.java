@@ -265,7 +265,7 @@ public class TestDb {
         Assert.assertTrue("insertLiftAddress Error: Failure to insert Lift.", liftId != -1);
 
         // Insert LiftAddress
-        ContentValues liftAddressValues = getLiftAddressValuesSample(liftId, addressId);
+        ContentValues liftAddressValues = getLiftAddressValuesSample1(liftId, addressId);
 
         long liftAddressId = sqLiteDatabase.insert(LiftContract.LiftAddressEntry.TABLE_NAME,
                 null,
@@ -349,8 +349,26 @@ public class TestDb {
         return addressValues;
     }
 
+    // Spire - O'Connell
     public static ContentValues getAddressValuesSample1(){
-        String place = "Camden Street";
+        String place = "O'Connell Street";
+        String neighborhood = "Broadstone";
+        String city = "Dublin";
+        String state= "Leinster";
+        String country = "Ireland";
+        String zipcode = "Dublin 1";
+
+        return getAddressValues(place,
+                neighborhood,
+                city,
+                state,
+                country,
+                zipcode);
+    }
+
+    // Opium - Wexford St
+    public static ContentValues getAddressValuesSample2(){
+        String place = "26 Wexford Street";
         String neighborhood = "Saint Kevin's";
         String city = "Dublin";
         String state = "Leinster";
@@ -365,9 +383,27 @@ public class TestDb {
                 zipcode);
     }
 
-    public static ContentValues getAddressValuesSample2(){
-        String place = "O'Connell Street";
-        String neighborhood = "Broadstone";
+    // The George - South Great George's
+    public static ContentValues getAddressValuesSample3(){
+        String place = "South Great George's Street";
+        String neighborhood = "City Centre";
+        String city = "Dublin";
+        String state= "Leinster";
+        String country = "Ireland";
+        String zipcode = "Dublin 1";
+
+        return getAddressValues(place,
+                neighborhood,
+                city,
+                state,
+                country,
+                zipcode);
+    }
+
+    // Dicey's - Harcourt
+    public static ContentValues getAddressValuesSample4(){
+        String place = "Harcourt Street";
+        String neighborhood = "Saint Kevin's";
         String city = "Dublin";
         String state= "Leinster";
         String country = "Ireland";
@@ -595,19 +631,19 @@ public class TestDb {
      * Generate a ContentValues object for the shift where:
      *  - Lift Id: @param
      *  - Address Id: @param
-     *  - Type: @param [HOP_ON/HOP_IN]
+     *  - Type: @param [HOP_ON/HOP_OFF]
      *  - Number: @param
      *  - Latitude: @param
      *  - Longitude: @param
      *  - Point of Interest: @param
      */
     public static ContentValues getLiftAddressValues(long liftId,
-                                                     long addressId,
-                                                     String type,
-                                                     int number,
-                                                     double latitude,
-                                                     double longitude,
-                                                     String pointOfInterest){
+                                                      long addressId,
+                                                      String type,
+                                                      int number,
+                                                      double latitude,
+                                                      double longitude,
+                                                      String pointOfInterest){
         GregorianCalendar creationDate = new GregorianCalendar();
 
         ContentValues liftAddressValues = new ContentValues();
@@ -628,18 +664,99 @@ public class TestDb {
      * It generates a ContentValues object for the LiftAddress where:
      *  - Lift Id: @param
      *  - Address Id: @param
-     *  - type: "HOP_IN"
+     *  - type: "HOP_ON"
      *  - Number: 33
-     *  - Latitude: 53.349722
-     *  - Longitude: -6.260278
+     *  - Latitude: 53.350097
+     *  - Longitude: -6.260211
      *  - Point of interest: Spire
      */
-    public static ContentValues getLiftAddressValuesSample(long liftId,
+    public static ContentValues getLiftAddressValuesSample1(long liftId,
                                                            long addressId){
-        String type = "HOP_IN";
-        int number = 33;
-        double latitude = 53.349722;
-        double longitude = -6.260278;
+        String type = "HOP_ON";
+        int number = 0;
+        double latitude = 53.350097;
+        double longitude = -6.260211;
+        String pointOfInterest = "Spire";
+
+        return getLiftAddressValues(liftId,
+                addressId,
+                type,
+                number,
+                latitude,
+                longitude,
+                pointOfInterest);
+    }
+
+    /*
+     * It generates a ContentValues object for the LiftAddress where:
+     *  - Lift Id: @param
+     *  - Address Id: @param
+     *  - type: "HOP_OFF"
+     *  - Number: 89
+     *  - Latitude: 53.336756
+     *  - Longitude: -6.265782
+     *  - Point of interest: Spire
+     */
+    public static ContentValues getLiftAddressValuesSample2(long liftId,
+                                                            long addressId){
+        String type = "HOP_OFF";
+        int number = 26;
+        double latitude = 53.336756;
+        double longitude = -6.265782;
+        String pointOfInterest = "Opium Rooms";
+
+        return getLiftAddressValues(liftId,
+                addressId,
+                type,
+                number,
+                latitude,
+                longitude,
+                pointOfInterest);
+    }
+
+    /*
+     * It generates a ContentValues object for the LiftAddress where:
+     *  - Lift Id: @param
+     *  - Address Id: @param
+     *  - type: "HOP_ON"
+     *  - Number: 89
+     *  - Latitude: 53.343730
+     *  - Longitude: -6.264673
+     *  - Point of interest: The George
+     */
+    public static ContentValues getLiftAddressValuesSample3(long liftId,
+                                                            long addressId){
+        String type = "HOP_ON";
+        int number = 89;
+        double latitude = 53.343730;
+        double longitude = -6.264673;
+        String pointOfInterest = "Spire";
+
+        return getLiftAddressValues(liftId,
+                addressId,
+                type,
+                number,
+                latitude,
+                longitude,
+                pointOfInterest);
+    }
+
+    /*
+     * It generates a ContentValues object for the LiftAddress where:
+     *  - Lift Id: @param
+     *  - Address Id: @param
+     *  - type: "HOP_ON"
+     *  - Number: 21
+     *  - Latitude: 53.335857
+     *  - Longitude: -6.263503
+     *  - Point of interest: Dicey's
+     */
+    public static ContentValues getLiftAddressValuesSample4(long liftId,
+                                                            long addressId){
+        String type = "HOP_OFF";
+        int number = 21;
+        double latitude = 53.335857;
+        double longitude = -6.263503;
         String pointOfInterest = "Spire";
 
         return getLiftAddressValues(liftId,
