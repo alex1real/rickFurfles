@@ -287,31 +287,159 @@ public class TestProvider {
          * Insert FK Dependencies *
          *************************/
         // Insert Shift 1
+        ContentValues shiftValues1 = TestDb.getShiftValuesSample1();
+
+        Uri shiftUri1 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues1);
+
+        long shiftId1 = ContentUris.parseId(shiftUri1);
+
+        Assert.assertTrue("Error: Fail to insert Shift 1. Unexpected id returned.",
+                shiftId1 > 0);
+
         // Insert Shift 2
+        ContentValues shiftValues2 = TestDb.getShiftValuesSample2();
+
+        Uri shiftUri2 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues2);
+
+        long shiftId2 = ContentUris.parseId(shiftUri2);
+
+        Assert.assertTrue("Error: Fail to insert Shift 2. Unexpected id returned.",
+                shiftId2 > 0);
 
         /******************
          * Create Expense *
          *****************/
         // Insert Expense 1
+        // Register a ContentObserver
+        TestContentObserver tco = TestContentObserver.getTestContentObserver();
+        appContext.getContentResolver().registerContentObserver(LiftContract.ExpenseEntry.CONTENT_URI,
+                true,
+                tco);
+
+        // Insert Expense
+        ContentValues expenseValues1 = TestDb.getExpenseValuesSample1(shiftId1);
+
+        Uri expenseUri1 = appContext.getContentResolver().insert(LiftContract.ExpenseEntry.CONTENT_URI,
+                expenseValues1);
+
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+
+        // Check if the Expense was inserted properly
+        long expenseId1 = ContentUris.parseId(expenseUri1);
+
+        Assert.assertTrue("Error: Fail to insert Expense 1. Unexpected id returned.",
+                expenseId1 > 0);
+
+        expenseValues1.put(LiftContract.ExpenseEntry._ID, expenseId1);
+
         // Insert Expense 2
+        ContentValues expenseValues2 = TestDb.getExpenseValuesSample2(shiftId2);
+
+        Uri expenseUri2 = appContext.getContentResolver().insert(LiftContract.ExpenseEntry.CONTENT_URI,
+                expenseValues2);
+
+        long expenseId2 = ContentUris.parseId(expenseUri2);
+
+        Assert.assertTrue("Error: Fail to insert Expense 2. Unexpected id returned.",
+                expenseId2 > 0);
+
+        expenseValues2.put(LiftContract.ExpenseEntry._ID, expenseId2);
 
         /****************
          * Read Expense *
          ***************/
         // Query all Expenses
-        // Query Expenses from Shift 1
+        Cursor cursor = appContext.getContentResolver().query(LiftContract.ExpenseEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Fail to query Expenses. Unexpected amount of recrods were returned.",
+                2, cursor.getCount());
+
+        Assert.assertTrue("Error: Expense 1 is not present in Cursor for all Expenses.",
+                TestUtilities.isValidCursor(cursor, expenseValues1));
+
+        cursor.close();
+
+        // Query Expenses from Shift 2
+        Uri expenseByShiftUri = LiftContract.ExpenseEntry.buildExpenseByShiftUri(shiftId2);
+
+        cursor = appContext.getContentResolver().query(expenseByShiftUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Fail to query Expense by Shift. Unexpected amount of records returned.",
+                1, cursor.getCount());
+
+        Assert.assertTrue("Error: Fail to query Expense by Shift. Expense 2 is not present into Cursor.",
+                TestUtilities.isValidCursor(cursor, expenseValues2));
 
         /******************
          * Update Expense *
          *****************/
         // Update Expense 2
+        // Register a ContentObserver
+        tco = TestContentObserver.getTestContentObserver();
+        cursor.registerContentObserver(tco);
+
+        // Update Expense
+        ContentValues updatedExpense2Values = new ContentValues(expenseValues2);
+        updatedExpense2Values.put(LiftContract.ExpenseEntry.COLUMN_VALUE, "1.99");
+
+        int numAffectedRows = appContext.getContentResolver().update(LiftContract.ExpenseEntry.CONTENT_URI,
+                updatedExpense2Values,
+                LiftContract.ExpenseEntry.TABLE_NAME + "."
+                + LiftContract.ExpenseEntry._ID + " = ?",
+                new String[]{Long.toString(expenseId2)});
+
+        // Check if the ContentObserver has been notified
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+        cursor.close();
+
+        // Check if the Expense 2 was update properly
+        Assert.assertEquals("Error: Fail to update Expense 2. Unexpected amount of record returned.",
+                1, cursor.getCount());
+
+        cursor = appContext.getContentResolver().query(expenseByShiftUri,
+                 null, null, null, null);
+
+        Assert.assertTrue("Error: Fail to update Expense 2. Changes weren't refelcted into db.",
+                TestUtilities.isValidCursor(cursor, updatedExpense2Values));
+
 
         /******************
          * Delete Expense *
          *****************/
         // Delete Expense 2
+        tco = TestContentObserver.getTestContentObserver();
+        cursor.registerContentObserver(tco);
 
-        //ToDo: Implement crudExpense()
+        // Delete Expense
+        numAffectedRows = appContext.getContentResolver().delete(LiftContract.ExpenseEntry.CONTENT_URI,
+                LiftContract.ExpenseEntry.TABLE_NAME + "."
+                + LiftContract.ExpenseEntry._ID + " = ?",
+                new String[]{Long.toString(expenseId2)});
+
+        // Check if the ContentObserver has been called
+        tco.waitForNotificationOrFail();
+        appContext.getContentResolver().unregisterContentObserver(tco);
+        cursor.close();
+
+        // Check if the deletion has been made properly
+        Assert.assertEquals("Error: Fail to delete Expense 2. Unexpected numAffectedRows.",
+                1, numAffectedRows);
+
+        cursor = appContext.getContentResolver().query(LiftContract.ExpenseEntry.CONTENT_URI,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Fail to delete Expense 2. Unexpected number of records remaining into db.",
+                1, cursor.getCount());
+
+        Assert.assertFalse("Error: Fail to delete Expense 2. Record still in db.",
+                TestUtilities.isValidCursor(cursor, updatedExpense2Values));
     }
 
     @Test
@@ -779,7 +907,7 @@ public class TestProvider {
         // Check if the record has been deleted
         Assert.assertEquals("Error: Fail to delete LiftAddress 1. Unexpected numAffectedRows returned.",
                 1, numAffectedRows);
-        
+
         cursor = appContext.getContentResolver().query(LiftContract.LiftAddressEntry.CONTENT_URI,
                 null, null, null, null);
 
@@ -790,8 +918,6 @@ public class TestProvider {
                 TestUtilities.isValidCursor(cursor, updatedLiftAddress1Values));
 
         cursor.close();
-
-        //ToDo: Implement crudLiftAddress()
     }
 
     @Test

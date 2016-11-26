@@ -137,7 +137,7 @@ public class TestDb {
         Assert.assertTrue("insertExpense: It wasn't possible to insert the Shift", shiftId != -1);
 
         // Create a Expense
-        ContentValues expenseValues = getExpenseValuesSample(shiftId);
+        ContentValues expenseValues = getExpenseValuesSample1(shiftId);
 
         long expenseId = sqLiteDatabase.insert(LiftContract.ExpenseEntry.TABLE_NAME,
                 null,
@@ -441,7 +441,7 @@ public class TestDb {
      *  - Value: 6.30
      *  - Shift Id: @param
      */
-    public static ContentValues getExpenseValuesSample(long shiftId){
+    public static ContentValues getExpenseValuesSample1(long shiftId){
         String name = "food";
 
         GregorianCalendar date = new GregorianCalendar();
@@ -450,6 +450,29 @@ public class TestDb {
         date.set(Calendar.MINUTE, 30);
 
         BigDecimal value = new BigDecimal("6.3");
+
+        return getExpenseValues(name,
+                date,
+                value,
+                shiftId);
+    }
+
+    /*
+     * It generates a ContentValues object for the Expense where:
+     *  - Name: tube
+     *  - Date: Yesterday 01:45:XX
+     *  - Value: 5
+     *  - Shift Id: @param
+     */
+    public static ContentValues getExpenseValuesSample2(long shiftId){
+        String name = "tube";
+
+        GregorianCalendar date = new GregorianCalendar();
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        date.set(Calendar.HOUR_OF_DAY, 1);
+        date.set(Calendar.MINUTE, 45);
+
+        BigDecimal value = new BigDecimal("5.0");
 
         return getExpenseValues(name,
                 date,
