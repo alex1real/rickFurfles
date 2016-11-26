@@ -49,6 +49,16 @@ public class LiftProvider extends ContentProvider {
     private static final String LIFT_BY_SHIFT_SELECTION =
             LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID + " = ?";
 
+    private static final String LIFT_ADDR_BY_LIFT_SELECTION =
+            LiftContract.LiftAddressEntry.TABLE_NAME + "."
+            + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " = ?";
+
+    private static final String LIFT_ADDR_BY_LIFT_AND_TYPE_SELECTION =
+            LiftContract.LiftAddressEntry.TABLE_NAME + "."
+            + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " = ? AND "
+            + LiftContract.LiftAddressEntry.TABLE_NAME + "."
+            + LiftContract.LiftAddressEntry.COLUMN_TYPE + " = ?";
+
     private static final String SHIFT_BY_ID_SELECTION =
             LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = ?";
 
@@ -205,6 +215,15 @@ public class LiftProvider extends ContentProvider {
                     returnUri = LiftContract.LiftEntry.buildLiftUri(id);
 
                 break;
+            case LIFT_ADDR:
+                id = sqLiteDatabase.insert(LiftContract.LiftAddressEntry.TABLE_NAME,
+                        null,
+                        contentValues);
+
+                if(id > 0)
+                    returnUri = LiftContract.LiftAddressEntry.buildLiftAddressUri(id);
+
+                break;
             case SHIFT:
                 id = sqLiteDatabase.insert(LiftContract.ShiftEntry.TABLE_NAME,
                         null,
@@ -256,6 +275,22 @@ public class LiftProvider extends ContentProvider {
                 selectionArgs = getLiftByIdSelectionArgs(uri);
 
                 break;
+            case LIFT_ADDR:
+                tableName = LiftContract.LiftAddressEntry.TABLE_NAME;
+
+                break;
+            case LIFT_ADDR_BY_LIFT:
+                tableName = LiftContract.LiftAddressEntry.TABLE_NAME;
+                selection = LIFT_ADDR_BY_LIFT_SELECTION;
+                selectionArgs = this.getLiftAddrByLiftSelectionArgs(uri);
+
+                break;
+            case LIFT_ADDR_BY_LIFT_AND_TYPE:
+                tableName = LiftContract.LiftAddressEntry.TABLE_NAME;
+                selection = LIFT_ADDR_BY_LIFT_AND_TYPE_SELECTION;
+                selectionArgs = this.getLiftAddrByLiftAndTypeSelectionArgs(uri);
+
+                break;
             case SHIFT:
                 tableName = LiftContract.ShiftEntry.TABLE_NAME;
 
@@ -287,6 +322,9 @@ public class LiftProvider extends ContentProvider {
             case ADDRESS:
             case LIFT:
             case LIFT_BY_SHIFT:
+            case LIFT_ADDR:
+            case LIFT_ADDR_BY_LIFT:
+            case LIFT_ADDR_BY_LIFT_AND_TYPE:
             case SHIFT:
             case SHIFT_BY_PERIOD:
                 // It executes non join queries
@@ -342,6 +380,10 @@ public class LiftProvider extends ContentProvider {
                 break;
             case LIFT:
                 tableName = LiftContract.LiftEntry.TABLE_NAME;
+
+                break;
+            case LIFT_ADDR:
+                tableName = LiftContract.LiftAddressEntry.TABLE_NAME;
 
                 break;
             case SHIFT:
@@ -442,6 +484,24 @@ public class LiftProvider extends ContentProvider {
         long shiftId = LiftContract.LiftEntry.getShiftIdFromUri(uri);
 
         String[] selectionArgs = new String[]{Long.toString(shiftId)};
+
+        return selectionArgs;
+    }
+
+    //LIFT_ADDR_BY_LIFT_AND_TYPE
+    private String[] getLiftAddrByLiftSelectionArgs(Uri uri){
+        long liftId = LiftContract.LiftAddressEntry.getLiftIdFromUri(uri);
+
+        String[] selectionArgs = new String[]{Long.toString(liftId)};
+
+        return selectionArgs;
+    }
+
+    private String[] getLiftAddrByLiftAndTypeSelectionArgs(Uri uri){
+        long liftId = LiftContract.LiftAddressEntry.getLiftIdFromUri(uri);
+        String type = LiftContract.LiftAddressEntry.getTypeFromUri(uri);
+
+        String[] selectionArgs = new String[]{Long.toString(liftId), type};
 
         return selectionArgs;
     }
