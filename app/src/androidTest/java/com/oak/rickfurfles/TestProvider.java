@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -34,7 +33,6 @@ public class TestProvider {
      ************/
     private static final String LOG_TAG = TestProvider.class.getSimpleName();
     private Context appContext;
-    private SimpleDateFormat logSdf;
 
     /******************
      * Public Methods *
@@ -45,7 +43,6 @@ public class TestProvider {
     @Before
     public void setUp(){
         appContext = InstrumentationRegistry.getTargetContext();
-        logSdf = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss.SSS");
 
         this.deleteAllRecordsFromProvider();
     }
@@ -287,26 +284,10 @@ public class TestProvider {
          * Insert FK Dependencies *
          *************************/
         // Insert Shift 1
-        ContentValues shiftValues1 = TestDb.getShiftValuesSample1();
-
-        Uri shiftUri1 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues1);
-
-        long shiftId1 = ContentUris.parseId(shiftUri1);
-
-        Assert.assertTrue("Error: Fail to insert Shift 1. Unexpected id returned.",
-                shiftId1 > 0);
+        long shiftId1 = this.insertShiftSample1();
 
         // Insert Shift 2
-        ContentValues shiftValues2 = TestDb.getShiftValuesSample2();
-
-        Uri shiftUri2 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues2);
-
-        long shiftId2 = ContentUris.parseId(shiftUri2);
-
-        Assert.assertTrue("Error: Fail to insert Shift 2. Unexpected id returned.",
-                shiftId2 > 0);
+        long shiftId2 = this.insertShiftSample2();
 
         /******************
          * Create Expense *
@@ -401,7 +382,7 @@ public class TestProvider {
 
         // Check if the Expense 2 was update properly
         Assert.assertEquals("Error: Fail to update Expense 2. Unexpected amount of record returned.",
-                1, cursor.getCount());
+                1, numAffectedRows);
 
         cursor = appContext.getContentResolver().query(expenseByShiftUri,
                  null, null, null, null);
@@ -448,36 +429,13 @@ public class TestProvider {
          * Insert FK Dependency *
          ***********************/
         // Insert Shift 1
-        ContentValues shiftValues1 = TestDb.getShiftValuesSample1();
-
-        Uri shiftUri1 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues1);
-
-        long shiftId1 = ContentUris.parseId(shiftUri1);
-        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 1",
-                shiftId1 > 0);
+        long shiftId1 = this.insertShiftSample1();
 
         // Insert Shift 2
-        ContentValues shiftValues2 = TestDb.getShiftValuesSample2();
-
-        Uri shiftUri2 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues2);
-
-        long shiftId2 = ContentUris.parseId(shiftUri2);
-
-        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 2.",
-                shiftId2 > 0);
+        long shiftId2 = this.insertShiftSample2();
 
         // Insert Shift 3
-        ContentValues shiftValues3 = TestDb.getShiftValuesSample3();
-
-        Uri shiftUri3 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues3);
-
-        long shiftId3 = ContentUris.parseId(shiftUri3);
-
-        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 3.",
-                shiftId3 > 0);
+        long shiftId3 = this.insertShiftSample3();
 
         /***************
          * Create Lift *
@@ -657,81 +615,25 @@ public class TestProvider {
          * Insert FK Dependencies *
          *************************/
         // Insert Shift
-        ContentValues shiftValues = TestDb.getShiftValuesSample1();
-
-        Uri shiftUri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues);
-
-        long shiftId = ContentUris.parseId(shiftUri);
-
-        Assert.assertTrue("Error: Fail to insert Shift. Unexpected id returend.",
-                shiftId > 0);
+        long shiftId = this.insertShiftSample1();
 
         // Insert Lift 1
-        ContentValues liftValues1 = TestDb.getLiftValuesSample1(shiftId);
-
-        Uri liftUri1 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues1);
-
-        long liftId1 = ContentUris.parseId(liftUri1);
-
-        Assert.assertTrue("Error: Fail to insert Lift 1. Unexpected id returend.",
-                liftId1 > 0);
+        long liftId1 = this.insertLiftSample1(shiftId);
 
         // Insert Lift 2
-        ContentValues liftValues2 = TestDb.getLiftValuesSample2(shiftId);
-
-        Uri liftUri2 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues2);
-
-        long liftId2 = ContentUris.parseId(liftUri2);
-
-        Assert.assertTrue("Error: Fail to insert Lift 2. Unexpected id returend.",
-                liftId2 > 0);
+        long liftId2 = this.insertLiftSample2(shiftId);
 
         // Insert Address 1
-        ContentValues addressValues1 = TestDb.getAddressValuesSample1();
-
-        Uri addressUri1 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
-                addressValues1);
-
-        long addressId1 = ContentUris.parseId(addressUri1);
-
-        Assert.assertTrue("Error: Fail to insert Address 1. Unexpected id returned.",
-                addressId1 > 0);
+        long addressId1 = this.insertAddressSample1();
 
         // Insert Address 2
-        ContentValues addressValues2 = TestDb.getAddressValuesSample2();
-
-        Uri addressUri2 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
-                addressValues2);
-
-        long addressId2 = ContentUris.parseId(addressUri2);
-
-        Assert.assertTrue("Error: Fail to insert Address 2. Unexpected id returned.",
-                addressId2 > 0);
+        long addressId2 = this.insertAddressSample2();
 
         // Insert Address 3
-        ContentValues addressValues3 = TestDb.getAddressValuesSample3();
-
-        Uri addressUri3 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
-                addressValues3);
-
-        long addressId3 = ContentUris.parseId(addressUri3);
-
-        Assert.assertTrue("Error: Fail to insert Address 3. Unexpected id returned.",
-                addressId3 > 0);
+        long addressId3 = this.insertAddressSample3();
 
         // Insert Address 4
-        ContentValues addressValues4 = TestDb.getAddressValuesSample4();
-
-        Uri addressUri4 = appContext.getContentResolver().insert(LiftContract.AddressEntry.CONTENT_URI,
-                addressValues4);
-
-        long addressId4 = ContentUris.parseId(addressUri4);
-
-        Assert.assertTrue("Error: Fail to insert Address 4. Unexpected id returned.",
-                addressId4 > 0);
+        long addressId4 = this.insertAddressSample4();
 
         /**********************
          * Create LiftAddress *
@@ -1232,11 +1134,32 @@ public class TestProvider {
         long addressId = ContentUris.parseId(addressUri);
         Log.v(LOG_TAG, "Address Id: " + addressId);
 
+        Assert.assertTrue("Error: Fail to insert Address. Unexpected id returned.",
+                addressId > 0);
+
         return addressId;
     }
 
     private long insertAddressSample1(){
         ContentValues addressValues = TestDb.getAddressValuesSample1();
+
+        return insertAddress(addressValues);
+    }
+
+    private long insertAddressSample2(){
+        ContentValues addressValues = TestDb.getAddressValuesSample2();
+
+        return insertAddress(addressValues);
+    }
+
+    private long insertAddressSample3(){
+        ContentValues addressValues = TestDb.getAddressValuesSample3();
+
+        return insertAddress(addressValues);
+    }
+
+    private long insertAddressSample4(){
+        ContentValues addressValues = TestDb.getAddressValuesSample4();
 
         return insertAddress(addressValues);
     }
@@ -1247,6 +1170,9 @@ public class TestProvider {
 
         long liftId = ContentUris.parseId(liftUri);
         Log.v(LOG_TAG, "Lift Id: " + liftId);
+
+        Assert.assertTrue("Error: Fail to insert Lift. Unexpected id returned.",
+                liftId > 0);
 
         return liftId;
     }
@@ -1279,54 +1205,15 @@ public class TestProvider {
         return this.insertLift(liftValues);
     }
 
-    /*
-     * Insert a sample Lift where
-     *  - Start Date: 2 days ago 23:12
-     *  - End Date: 2 days ago 23:17
-     *  - Price: 10.0
-     *  - Number of Passengers: 1
-     *  - Shift Id: @param
-     */
-    private long insertLiftSample3(long shiftId){
-        ContentValues liftValues = TestDb.getLiftValuesSample3(shiftId);
-
-        return this.insertLift(liftValues);
-    }
-
-    /*
-     * Insert a sample Lift where
-     *  - Start Date: 2 days ago 23:57
-     *  - End Date: 1 days ago 00:07
-     *  - Price: 20.00
-     *  - Number of Passengers: 1
-     *  - Shift Id: @param
-     */
-    private long insertLiftSample4(long shiftId){
-        ContentValues liftValues = TestDb.getLiftValuesSample4(shiftId);
-
-        return this.insertLift(liftValues);
-    }
-
-    /*
-     * Insert a sample Lift where
-     *  - Start Date: 2 weeks ago 22:21
-     *  - End Date: 2 weeks ago 22:41
-     *  - Price: 10.00
-     *  - Number of Passengers: 2
-     *  - Shift Id: @param
-     */
-    private long insertLiftSample5(long shiftId){
-        ContentValues liftValues = TestDb.getLiftValuesSample5(shiftId);
-
-        return this.insertLift(liftValues);
-    }
-
     private long insertShift(ContentValues shiftValues){
         Uri shiftUri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
                 shiftValues);
 
         long shiftId = ContentUris.parseId(shiftUri);
         Log.v(LOG_TAG, "Shift Id: " + shiftId);
+
+        Assert.assertTrue("Error: Fail to insert Shift 1. Unexpected id returned.",
+                shiftId > 0);
 
         return shiftId;
     }
@@ -1355,21 +1242,21 @@ public class TestProvider {
     }
 
     /*
- * Insert a sample Shift where
- *  - Start Date
- *      day - 2 days ago
- *      hour - 21
- *      min - 30
- *      sec - current
- *      millis = current
- *  - End Date
- *      day - yesterday
- *      hour - 4
- *      min - 23
- *      sec - current
- *      millis - current
- * Returns
- *  shiftId
+     * Insert a sample Shift where
+     *  - Start Date
+     *      day - 2 days ago
+     *      hour - 21
+     *      min - 30
+     *      sec - current
+     *      millis = current
+     *  - End Date
+     *      day - yesterday
+     *      hour - 4
+     *      min - 23
+     *      sec - current
+     *      millis - current
+     * Returns
+     *  shiftId
  */
     private long insertShiftSample2(){
         ContentValues shiftValues = TestDb.getShiftValuesSample2();
@@ -1378,22 +1265,22 @@ public class TestProvider {
     }
 
     /*
- * Insert a sample Shift where
- *  - Start Date
- *      day - 2 weeks ago
- *      hour - 21
- *      min - 20
- *      sec - current
- *      millis = current
- *  - End Date
- *      day - 13 days ago
- *      hour - 5
- *      min - 11
- *      sec - current
- *      millis - current
- * Returns
- *  shiftId
- */
+     * Insert a sample Shift where
+     *  - Start Date
+     *      day - 2 weeks ago
+     *      hour - 21
+     *      min - 20
+     *      sec - current
+     *      millis = current
+     *  - End Date
+     *      day - 13 days ago
+     *      hour - 5
+     *      min - 11
+     *      sec - current
+     *      millis - current
+     * Returns
+     *  shiftId
+     */
     private long insertShiftSample3(){
         ContentValues shiftValues = TestDb.getShiftValuesSample3();
 
