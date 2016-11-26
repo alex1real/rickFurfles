@@ -46,6 +46,10 @@ public class LiftProvider extends ContentProvider {
     /**************
      * Selections *
      *************/
+    private static final String EXPENSE_BY_SHIFT_SELECTION =
+            LiftContract.ExpenseEntry.TABLE_NAME + "."
+            + LiftContract.ExpenseEntry.COLUMN_SHIFT_ID + " = ?";
+
     private static final String LIFT_BY_SHIFT_SELECTION =
             LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID + " = ?";
 
@@ -206,6 +210,15 @@ public class LiftProvider extends ContentProvider {
                     returnUri = LiftContract.AddressEntry.buildAddressUri(id);
 
                 break;
+            case EXPENSE:
+                id = sqLiteDatabase.insert(LiftContract.ExpenseEntry.TABLE_NAME,
+                        null,
+                        contentValues);
+
+                if(id > 0)
+                        returnUri = LiftContract.AddressEntry.buildAddressUri(id);
+
+                break;
             case LIFT:
                 id = sqLiteDatabase.insert(LiftContract.LiftEntry.TABLE_NAME,
                         null,
@@ -265,6 +278,16 @@ public class LiftProvider extends ContentProvider {
                 tableName = LiftContract.AddressEntry.TABLE_NAME;
 
                 break;
+            case EXPENSE:
+                tableName = LiftContract.ExpenseEntry.TABLE_NAME;
+
+                break;
+            case EXPENSE_BY_SHIFT:
+                tableName = LiftContract.ExpenseEntry.TABLE_NAME;
+                selection = EXPENSE_BY_SHIFT_SELECTION;
+                selectionArgs = getExpenseByShiftSelectionArgs(uri);
+
+                break;
             case LIFT:
                 tableName = LiftContract.LiftEntry.TABLE_NAME;
 
@@ -320,6 +343,8 @@ public class LiftProvider extends ContentProvider {
 
         switch (match){
             case ADDRESS:
+            case EXPENSE:
+            case EXPENSE_BY_SHIFT:
             case LIFT:
             case LIFT_BY_SHIFT:
             case LIFT_ADDR:
@@ -376,6 +401,10 @@ public class LiftProvider extends ContentProvider {
         switch(match){
             case ADDRESS:
                 tableName = LiftContract.AddressEntry.TABLE_NAME;
+
+                break;
+            case EXPENSE:
+                tableName = LiftContract.ExpenseEntry.TABLE_NAME;
 
                 break;
             case LIFT:
@@ -478,6 +507,14 @@ public class LiftProvider extends ContentProvider {
                 SHIFT_SUM);
 
         return uriMatcher;
+    }
+
+    private String[] getExpenseByShiftSelectionArgs(Uri uri){
+        long shiftId = LiftContract.ExpenseEntry.getShiftIdFromUri(uri);
+
+        String[] selectionArgs = new String[]{Long.toString(shiftId)};
+
+        return selectionArgs;
     }
 
     private String[] getLiftByIdSelectionArgs(Uri uri){
