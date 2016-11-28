@@ -193,6 +193,8 @@ public class LiftProvider extends ContentProvider {
                 return LiftContract.ShiftEntry.CONTENT_TYPE;
             case SHIFT_BY_PERIOD_SUM:
                 return LiftContract.ShiftEntry.CONTENT_ITEM_TYPE;
+            case SHIFT_BY_PERIOD_WITH_SUM:
+                return LiftContract.ShiftEntry.CONTENT_TYPE;
             case SHIFT_SUM:
                 return LiftContract.ShiftEntry.CONTENT_ITEM_TYPE;
             default:
