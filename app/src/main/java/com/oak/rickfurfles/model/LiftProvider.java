@@ -40,8 +40,9 @@ public class LiftProvider extends ContentProvider {
     private static final int LIFT_ADDR_BY_LIFT_AND_TYPE = 402;
     private static final int SHIFT = 500;
     private static final int SHIFT_BY_PERIOD = 501;
-    private static final int SHIFT_BY_PERIOD_SUM = 502;
-    private static final int SHIFT_SUM = 503;
+    private static final int SHIFT_BY_PERIOD_WITH_SUM = 502;
+    private static final int SHIFT_BY_PERIOD_SUM = 503;
+    private static final int SHIFT_SUM = 504;
 
     /**************
      * Selections *
@@ -75,11 +76,18 @@ public class LiftProvider extends ContentProvider {
     /***************
      * Projections *
      **************/
+    private static final String[] SHIFT_BY_PERIOD_WITH_SUM_PROJECTION =
+            new String[]{LiftContract.ShiftEntry.TABLE_NAME + ".*",
+            "sum(" + LiftContract.LiftEntry.TABLE_NAME + "."
+                    + LiftContract.LiftEntry.COLUMN_PRICE + ") "
+                    + "AS " + LiftContract.LiftEntry.FUNCTION_SUM_PRICE,
+            "count(*) AS " + LiftContract.LiftEntry.FUNCTION_COUNT_LIFT};
+
     private static final String[] SHIFT_SUM_PROJECTION =
             new String[]{"sum(" + LiftContract.LiftEntry.TABLE_NAME
                     + "." + LiftContract.LiftEntry.COLUMN_PRICE + ") "
-                    + "AS " + LiftContract.ShiftEntry.FUNCTION_SUM_PRICE,
-            "count(*) AS " + LiftContract.ShiftEntry.FUNCTION_COUNT_LIFT};
+                    + "AS " + LiftContract.LiftEntry.FUNCTION_SUM_PRICE,
+            "count(*) AS " + LiftContract.LiftEntry.FUNCTION_COUNT_LIFT};
 
     /****************************
      * Query Builders for Joins *
@@ -268,6 +276,7 @@ public class LiftProvider extends ContentProvider {
                         String sortOrder){
         Cursor returnCursor = null;
         String tableName = null;
+        String groupBy = null;
 
         int match = uriMatcher.match(uri);
 
@@ -324,6 +333,13 @@ public class LiftProvider extends ContentProvider {
                 selectionArgs = getShiftByPeriodSelectionArgs(uri);
 
                 break;
+            case SHIFT_BY_PERIOD_WITH_SUM:
+                projection = SHIFT_BY_PERIOD_WITH_SUM_PROJECTION;
+                selection = SHIFT_BY_PERIOD_SELECTION;
+                selectionArgs = this.getShiftByPeriodSelectionArgs(uri);
+                groupBy = LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID;
+
+                break;
             case SHIFT_BY_PERIOD_SUM:
                 projection = SHIFT_SUM_PROJECTION;
                 selection = SHIFT_BY_PERIOD_SELECTION;
@@ -357,11 +373,12 @@ public class LiftProvider extends ContentProvider {
                         projection,
                         selection,
                         selectionArgs,
-                        null,
+                        groupBy,
                         null,
                         sortOrder);
 
                 break;
+            case SHIFT_BY_PERIOD_WITH_SUM:
             case SHIFT_BY_PERIOD_SUM:
             case SHIFT_SUM:
                 // It executes Shift-Lift join queries
@@ -369,7 +386,7 @@ public class LiftProvider extends ContentProvider {
                         projection,
                         selection,
                         selectionArgs,
-                        null,
+                        groupBy,
                         null,
                         sortOrder);
 
@@ -500,6 +517,12 @@ public class LiftProvider extends ContentProvider {
                         + "/" + LiftContract.PATH_SHIFT_PERIOD + "/#/#"
                         + "/" + LiftContract.PATH_SHIFT_SUM,
                 SHIFT_BY_PERIOD_SUM);
+
+        uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
+                LiftContract.PATH_SHIFT
+                        + "/" + LiftContract.PATH_SHIFT_PERIOD + "/#/#"
+                        + "/" + LiftContract.PATH_SHIFT_WITH_SUM,
+                SHIFT_BY_PERIOD_WITH_SUM);
 
         uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
                 LiftContract.PATH_SHIFT

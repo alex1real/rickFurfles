@@ -41,6 +41,7 @@ public class LiftContract {
     public static final String PATH_SHIFT = "shift";
     public static final String PATH_SHIFT_PERIOD = "period";
     public static final String PATH_SHIFT_SUM = "sum";
+    public static final String PATH_SHIFT_WITH_SUM = "withSum";
 
     /*******************
      * Private Methods *
@@ -223,6 +224,14 @@ public class LiftContract {
         // It stores the Shift's foreign key
         public static final String COLUMN_SHIFT_ID = "SHIFT_ID";
 
+        /******************
+         * Pseudo Columns *
+         *****************/
+        // Column for sum(lift.price) function
+        public static final String FUNCTION_SUM_PRICE = "SUM_PRICE";
+
+        // Column for count(*) Shift-Lift function
+        public static final String FUNCTION_COUNT_LIFT = "COUNT_LIFT";
 
         /******************
          * Public Methods *
@@ -368,15 +377,6 @@ public class LiftContract {
         public static final String COLUMN_END_DT = "END_DT";
 
         /******************
-         * Pseudo Columns *
-         *****************/
-        // Column for sum(lift.price) function
-        public static final String FUNCTION_SUM_PRICE = "SUM_PRICE";
-
-        // Column for count(*) Shift-Lift function
-        public static final String FUNCTION_COUNT_LIFT = "COUNT_LIFT";
-
-        /******************
          * Public Methods *
          *****************/
         /****************
@@ -406,6 +406,18 @@ public class LiftContract {
                     .appendPath(Long.toString(startDateMillis))
                     .appendPath(Long.toString(endDateMillis))
                     .appendPath(LiftContract.PATH_SHIFT_SUM)
+                    .build();
+        }
+
+        public static Uri buildShiftPeriodWithSumUri(Calendar startDate, Calendar endDate){
+            long startDateMillis = getDayFirstMillis(startDate);
+            long endDateMillis = getDayLastMillis(endDate);
+
+            return CONTENT_URI.buildUpon()
+                    .appendPath(LiftContract.PATH_SHIFT_PERIOD)
+                    .appendPath(Long.toString(startDateMillis))
+                    .appendPath(Long.toString(endDateMillis))
+                    .appendPath(LiftContract.PATH_SHIFT_WITH_SUM)
                     .build();
         }
 
