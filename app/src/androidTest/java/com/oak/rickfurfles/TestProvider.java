@@ -113,12 +113,14 @@ public class TestProvider {
                 type);
 
         // Shift
+        // Default
         type = appContext.getContentResolver().getType(LiftContract.ShiftEntry.CONTENT_URI);
 
         Assert.assertEquals("Error: ShiftEntry CONTENT_TYPE should return ShiftEntry.CONTENT_TYPE",
                 LiftContract.ShiftEntry.CONTENT_TYPE,
                 type);
 
+        // Shift By Period
         GregorianCalendar startDate = new GregorianCalendar();
         startDate.add(Calendar.DAY_OF_YEAR, -5);
 
@@ -130,12 +132,21 @@ public class TestProvider {
                 LiftContract.ShiftEntry.CONTENT_TYPE,
                 type);
 
+        // Shift by Period Sum
         type = appContext.getContentResolver().getType(LiftContract.ShiftEntry.buildShiftPeriodSumUri(startDate, endDate));
 
         Assert.assertEquals("Error: ShiftEntry.buildShiftPeriodSumUri should return ShiftEntry.CONTENT_ITEM_TYPE",
                 LiftContract.ShiftEntry.CONTENT_ITEM_TYPE,
                 type);
 
+        // Shift by Period with Sum
+        type = appContext.getContentResolver().getType(LiftContract.ShiftEntry.buildShiftPeriodWithSumUri(startDate, endDate));
+
+        Assert.assertEquals("Error: ShiftEntry.buildShiftPeriodWithSumUri shour return ShiftEntry.CONTENT_TYPE",
+                LiftContract.ShiftEntry.CONTENT_TYPE,
+                type);
+        
+        // Shift Sum
         type = appContext.getContentResolver().getType(LiftContract.ShiftEntry.buildShiftSumUri(shiftId));
 
         Log.v(LOG_TAG, "LiftContract.ShiftEntry.buildShiftFromUri(1): " + LiftContract.ShiftEntry.buildShiftSumUri(1).toString());
