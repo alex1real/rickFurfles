@@ -623,7 +623,7 @@ public class TestDb {
     /*
      * It generates a ContentValues object for the Lift where:
      *  - Start Date: d -14 21:21
-     *  - End Date: d -14 21:36 min ago
+     *  - End Date: d -14 21:36
      *  - Price: 50.00
      *  - Number of Passengers: 2
      *  - Shift Id: @param

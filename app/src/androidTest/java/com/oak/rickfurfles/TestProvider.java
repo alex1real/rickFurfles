@@ -996,120 +996,148 @@ public class TestProvider {
 
     @Test
     public void queryShiftSum(){
-        /************************
-         * Insert FK dependency *
-         ***********************/
+        /***************
+         * Insert Data *
+         **************/
         // Insert Shift 1
-        ContentValues shiftValues1 = TestDb.getShiftValuesSample1();
-
-        Uri shiftUri1 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues1);
-
-        long shiftId1 = ContentUris.parseId(shiftUri1);
-        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 1",
-                shiftId1 > 0);
+        long shiftId1 = this.insertShiftSample1();
 
         // Insert Shift 2
-        ContentValues shiftValues2 = TestDb.getShiftValuesSample2();
-
-        Uri shiftUri2 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues2);
-
-        long shiftId2 = ContentUris.parseId(shiftUri2);
-
-        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 2.",
-                shiftId2 > 0);
+        long shiftId2 = this.insertShiftSample2();
 
         // Insert Shift 3
-        ContentValues shiftValues3 = TestDb.getShiftValuesSample3();
+        long shiftId3 = this.insertShiftSample3();
 
-        Uri shiftUri3 = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
-                shiftValues3);
-
-        long shiftId3 = ContentUris.parseId(shiftUri3);
-
-        Assert.assertTrue("Error: Invalid Id returned while trying to insert Shift 3.",
-                shiftId3 > 0);
-
-        /****************
-         * Insert Lifts *
-         ***************/
         // Lift 1
-        // Insert Lift
-        ContentValues liftValues1 = TestDb.getLiftValuesSample1(shiftId1);
-        Uri liftUri1 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues1);
-
-        // Check if the Lift was inserted
-        long liftId1 = ContentUris.parseId(liftUri1);
-        liftValues1.put(LiftContract.LiftEntry._ID, liftId1);
-
-        Assert.assertTrue("Error: Fail to inert Lift 1. Unexpected Id returned.", liftId1 > 0);
+        long liftId1 = this.insertLiftSample1(shiftId1);
 
         // Lift 2
-        ContentValues liftValues2 = TestDb.getLiftValuesSample2(shiftId1);
-        Uri liftUri2 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues2);
-
-        long liftId2 = ContentUris.parseId(liftUri2);
-        liftValues2.put(LiftContract.LiftEntry._ID, liftId2);
-
-        Assert.assertTrue("Error: Fail to insert Lift 2. Unexpected Id returned.", liftId2 > 0);
+        long liftId2 = this.insertLiftSample2(shiftId1);
 
         // Lift 3
-        ContentValues liftValues3 = TestDb.getLiftValuesSample3(shiftId2);
-        Uri liftUri3 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues3);
-
-        long liftId3 = ContentUris.parseId(liftUri3);
-        liftValues3.put(LiftContract.LiftEntry._ID, liftId3);
-
-        Assert.assertTrue("Error: Fail to insert Lift 3. Unexpected Id returned.", liftId3 > 0);
+        long liftId3 = this.insertLiftSample3(shiftId2);
 
         // Lift 4
-        ContentValues liftValues4 = TestDb.getLiftValuesSample4(shiftId2);
-        Uri liftUri4 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues4);
-
-        long liftId4 = ContentUris.parseId(liftUri4);
-        liftValues4.put(LiftContract.LiftEntry._ID, liftId4);
-
-        Assert.assertTrue("Error: Fail to insert Lift 4. Unexpected Id returned.", liftId4 > 0);
+        long liftId4 = this.insertLiftSample4(shiftId2);
 
         // Lift 5
-        ContentValues liftValues5 = TestDb.getLiftValuesSample5(shiftId3);
-        Uri liftUri5 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
-                liftValues5);
-
-        long liftId5 = ContentUris.parseId(liftUri5);
-        liftValues5.put(LiftContract.LiftEntry._ID, liftId5);
-
-        Assert.assertTrue("Error: Fail to insert Lift 5. Unexpected Id returned.", liftId5 > 0);
+        long liftId5 = this.insertLiftSample5(shiftId3);
 
         /*********
          * Query *
          ********/
         // Shift by Period Sum
+        Calendar startDate = new GregorianCalendar();
+        startDate.add(Calendar.DAY_OF_YEAR, -4);
+
+        Calendar endDate = new GregorianCalendar();
+        endDate.add(Calendar.DAY_OF_YEAR, 2);
+
+        Uri shiftPeriodSumUri = LiftContract.ShiftEntry.buildShiftPeriodSumUri(startDate, endDate);
+
+        Cursor cursor = appContext.getContentResolver().query(shiftPeriodSumUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Shift by Period Sum fail. Unexpected amount of records returned.",
+                1, cursor.getCount());
+
+        int sumPriceIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
+        int countLiftIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
+
+        double expectedSumPrice = TestDb.getLiftValuesSample1(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + TestDb.getLiftValuesSample2(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + TestDb.getLiftValuesSample3(shiftId2).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + TestDb.getLiftValuesSample4(shiftId2).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
+
+        cursor.moveToFirst();
+
+        double returnedSumPrice = cursor.getDouble(sumPriceIndex);
+
+        Assert.assertEquals("Error: Fail to query Shift by Period Sum. Unexpected sum price returned.",
+                expectedSumPrice, returnedSumPrice);
+
+        int countLift = cursor.getInt(countLiftIndex);
+
+        Assert.assertEquals("Error: Fail to query Shift by Period Sum. Unexpected lift count() returned.",
+                4, countLift);
+
+        cursor.close();
 
         // Shift Sum
         Uri shiftSumUri = LiftContract.ShiftEntry.buildShiftSumUri(shiftId1);
 
-        Cursor cursor = appContext.getContentResolver().query(shiftSumUri,
+        cursor = appContext.getContentResolver().query(shiftSumUri,
                 null, null, null, null);
 
-        int sumPriceIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.FUNCTION_SUM_PRICE);
-        int countLiftIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.FUNCTION_COUNT_LIFT);
+        sumPriceIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
+        countLiftIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
 
         cursor.moveToFirst();
-        double cvSumPrice = liftValues1.getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
-                + liftValues2.getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
-        double returnedSumPrice = cursor.getDouble(sumPriceIndex);
 
-        Assert.assertEquals("Error: Unexpected sum(price).", cvSumPrice, returnedSumPrice);
+        expectedSumPrice = TestDb.getLiftValuesSample1(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + TestDb.getLiftValuesSample2(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
+        returnedSumPrice = cursor.getDouble(sumPriceIndex);
 
-        int countLift = cursor.getInt(countLiftIndex);
+        Assert.assertEquals("Error: Unexpected sum(price).", expectedSumPrice, returnedSumPrice);
+
+        countLift = cursor.getInt(countLiftIndex);
 
         Assert.assertEquals("Error: Unexpected Lifts count().", 2, countLift);
+
+        cursor.close();
+
+        // Shift by Period With Sum
+        Uri shiftPeriodWithSumUri = LiftContract.ShiftEntry.buildShiftPeriodWithSumUri(startDate, endDate);
+
+        cursor = appContext.getContentResolver().query(shiftPeriodWithSumUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Fail to query Shift Period with sum. Unexpected amount of records returned.",
+                2, cursor.getCount());
+
+        // Getting Column Indexes
+        int idIndex = cursor.getColumnIndex(LiftContract.ShiftEntry._ID);
+        sumPriceIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
+        countLiftIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
+
+        // Calculating expected values
+        double expectedSumPriceShift1 = TestDb.getLiftValuesSample1(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + TestDb.getLiftValuesSample2(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
+
+        double expectedSumPriceShift2 = TestDb.getLiftValuesSample3(shiftId2).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
+                + TestDb.getLiftValuesSample4(shiftId2).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
+
+        cursor.moveToFirst();
+
+        long returnedShiftId;
+        int shiftNum = -1;
+
+        do{
+            returnedShiftId = cursor.getLong(idIndex);
+            returnedSumPrice = cursor.getDouble(sumPriceIndex);
+
+            if(returnedShiftId == shiftId1){
+                shiftNum = 1;
+
+                expectedSumPrice = expectedSumPriceShift1;
+            }
+            else if(returnedShiftId == shiftId2){
+                shiftNum = 2;
+
+                expectedSumPrice = expectedSumPriceShift2;
+            }
+
+            Assert.assertEquals("Error: Fail to query Shift by Period with Sum. Unexpected sum returned for Shift " +
+                    shiftNum + ".",
+                    expectedSumPrice, returnedSumPrice);
+
+            countLift = cursor.getInt(countLiftIndex);
+
+            Assert.assertEquals("Error: Fail to query Shift by Period with Sum. Unexpected count returned for Shift " +
+                    + shiftNum + ".",
+                    2, countLift);
+
+        }while(cursor.moveToNext());
 
         cursor.close();
     }
@@ -1201,6 +1229,48 @@ public class TestProvider {
      */
     private long insertLiftSample2(long shiftId){
         ContentValues liftValues = TestDb.getLiftValuesSample2(shiftId);
+
+        return this.insertLift(liftValues);
+    }
+
+    /*
+     * Insert a sample Lift where
+     *  - Start Date: d-2 22:13
+     *  - End Date: d-2 22:22
+     *  - Price: 10.00
+     *  - Number of Passengers: 2
+     *  - Shift Id: @param
+     */
+    private long insertLiftSample3(long shiftId){
+        ContentValues liftValues = TestDb.getLiftValuesSample3(shiftId);
+
+        return this.insertLift(liftValues);
+    }
+
+    /*
+     * Insert a sample Lift where
+     *  - Start Date: d -2 11:58
+     *  - End Date: d -1 00:03
+     *  - Price: 5.00
+     *  - Number of Passengers: 1
+     *  - Shift Id: @param
+     */
+    private long insertLiftSample4(long shiftId){
+        ContentValues liftValues = TestDb.getLiftValuesSample4(shiftId);
+
+        return this.insertLift(liftValues);
+    }
+
+    /*
+     * Insert a sample Lift where
+     *  - Start Date: d -14 21:21
+     *  - End Date: d -14 21:36
+     *  - Price: 50.00
+     *  - Number of Passengers: 2
+     *  - Shift Id: @param
+     */
+    private long insertLiftSample5(long shiftId){
+        ContentValues liftValues = TestDb.getLiftValuesSample5(shiftId);
 
         return this.insertLift(liftValues);
     }
