@@ -8,12 +8,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 
 import com.oak.rickfurfles.model.db.LiftContract;
+import com.oak.rickfurfles.model.db.LiftDbBaseColumns;
 import com.oak.rickfurfles.model.db.LiftDbHelper;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * Created by Alex on 09/11/2016.
@@ -209,6 +212,8 @@ public class LiftProvider extends ContentProvider {
         int match = uriMatcher.match(uri);
         Uri returnUri = null;
         long id;
+
+        contentValues = this.setInsertSystemFields(contentValues);
 
         switch(match){
             case ADDRESS:
@@ -417,6 +422,8 @@ public class LiftProvider extends ContentProvider {
         int numAffectedRows;
         String tableName;
 
+        contentValues = this.setUpdateSystemFields(contentValues);
+
         switch(match){
             case ADDRESS:
                 tableName = LiftContract.AddressEntry.TABLE_NAME;
@@ -587,5 +594,24 @@ public class LiftProvider extends ContentProvider {
         String[] selectionArgs = new String[]{Long.toString(shiftId)};
 
         return selectionArgs;
+    }
+
+    private ContentValues setInsertSystemFields(ContentValues contentValues){
+        GregorianCalendar creationDate = new GregorianCalendar();
+        long creationTimeInMillis = creationDate.getTimeInMillis();
+
+        contentValues.put(LiftDbBaseColumns.COLUMN_CREATED, creationTimeInMillis);
+        contentValues.put(LiftDbBaseColumns.COLUMN_LAST_UPD, creationTimeInMillis);
+
+        return contentValues;
+    }
+
+    private ContentValues setUpdateSystemFields(ContentValues contentValues){
+        GregorianCalendar updateDate = new GregorianCalendar();
+        long updateTimeInMillis = updateDate.getTimeInMillis();
+
+        contentValues.put(LiftDbBaseColumns.COLUMN_LAST_UPD, updateTimeInMillis);
+
+        return contentValues;
     }
 }

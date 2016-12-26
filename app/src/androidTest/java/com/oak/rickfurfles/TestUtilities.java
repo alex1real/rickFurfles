@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import com.oak.rickfurfles.model.db.LiftContract;
+import com.oak.rickfurfles.model.db.LiftDbBaseColumns;
 
 import junit.framework.Assert;
 
@@ -49,6 +50,12 @@ public class TestUtilities {
                 double cursorDoubleValue;
                 for(Map.Entry<String, Object> expectedEntry : expectedSet){
                     expectedColumnName = expectedEntry.getKey();
+
+                    //Skip system fields
+                    if(expectedColumnName.equals(LiftDbBaseColumns.COLUMN_CREATED)
+                            || expectedColumnName.equals(LiftDbBaseColumns.COLUMN_LAST_UPD)){
+                        continue;
+                    }
 
                     int cursorColumnIndex = cursor.getColumnIndex(expectedColumnName);
                     Assert.assertFalse("Expected column '" + expectedColumnName + "' wasn't found in the cursor",
