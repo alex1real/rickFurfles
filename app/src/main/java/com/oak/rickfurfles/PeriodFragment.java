@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class PeriodActivityFragment extends Fragment {
+public class PeriodFragment extends Fragment {
 
-    public PeriodActivityFragment() {
+    public PeriodFragment() {
     }
 
     @Override
