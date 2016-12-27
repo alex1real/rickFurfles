@@ -116,7 +116,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 + LiftContract.LiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL, "
                 + LiftContract.LiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
                 + LiftContract.LiftEntry.COLUMN_END_DT + " INTEGER, "
-                + LiftContract.LiftEntry.COLUMN_PRICE + " REAL NOT NULL, "
+                + LiftContract.LiftEntry.COLUMN_PRICE + " REAL, "
                 + LiftContract.LiftEntry.COLUMN_PASSENGERS_NUM + " INTEGER, "
                 + LiftContract.LiftEntry.COLUMN_SHIFT_ID + " INTEGER, "
                 + "CONSTRAINT 'FK_LIFT_SHIFT' FOREIGN KEY ("
@@ -173,7 +173,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                         + LiftContract.ShiftEntry.COLUMN_CREATED + " INTEGER NOT NULL, "
                         + LiftContract.ShiftEntry.COLUMN_LAST_UPD + " INTEGER NOT NULL,"
                         + LiftContract.ShiftEntry.COLUMN_START_DT + " INTEGER NOT NULL, "
-                        + LiftContract.ShiftEntry.COLUMN_END_DT + " INTEGER NOT NULL "
+                        + LiftContract.ShiftEntry.COLUMN_END_DT
                         + ");";
 
         sqLiteDatabase.execSQL(SQL_CREATE_SHIFT_TABLE);

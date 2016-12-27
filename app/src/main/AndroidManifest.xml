@@ -18,9 +18,29 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
-            android:authorities="com.oak.rickfurfles.app"
-            android:name="com.oak.rickfurfles.model.LiftProvider"/>
+            android:name=".model.LiftProvider"
+            android:authorities="com.oak.rickfurfles.app" />
+
+        <activity
+            android:name=".ShiftActivity"
+            android:label="@string/title_activity_shift"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.oak.rickfurfles.MainActivity" />
+        </activity>
+        <activity
+            android:name=".LiftActivity"
+            android:label="@string/title_activity_lift"
+            android:parentActivityName=".ShiftActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.oak.rickfurfles.ShiftActivity" />
+        </activity>
     </application>
 
 </manifest>

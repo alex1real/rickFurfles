@@ -1,5 +1,8 @@
 package com.oak.rickfurfles;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,6 +11,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.oak.rickfurfles.model.db.LiftContract;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,12 +26,19 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_period_new_shift);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+
+                // Add a new Shift
+                Uri shiftUri = MainActivity.this.insertNewShift();
+
+                // Navigate to the Shift's view
+                Intent shiftIntent = new Intent(view.getContext(), ShiftActivity.class);
+                shiftIntent.setData(shiftUri);
+
+                startActivity(shiftIntent);
             }
         });
     }
@@ -48,5 +63,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /*******************
+     * Private Methods *
+     ******************/
+    private Uri insertNewShift(){
+
+        ContentValues shiftValues = new ContentValues();
+
+        Calendar startDate = new GregorianCalendar();
+
+        shiftValues.put(LiftContract.ShiftEntry.COLUMN_START_DT, startDate.getTimeInMillis());
+
+        Uri shiftUri = getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
+                shiftValues);
+
+        return shiftUri;
     }
 }
