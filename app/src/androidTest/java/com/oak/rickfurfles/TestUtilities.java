@@ -2,6 +2,7 @@ package com.oak.rickfurfles;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.provider.BaseColumns;
 
 import com.oak.rickfurfles.model.db.LiftContract;
 import com.oak.rickfurfles.model.db.LiftDbBaseColumns;
@@ -27,10 +28,10 @@ public class TestUtilities {
         Assert.assertTrue("Empty cursor returned", cursor.moveToFirst());
 
         // Get the expected Id
-        long expectedId = expectedValues.getAsLong(LiftContract.ShiftEntry._ID);
+        long expectedId = expectedValues.getAsLong(BaseColumns._ID);
 
         // Try to find a record in the cursor with the same Id
-        int columnIdIndex = cursor.getColumnIndex(LiftContract.ShiftEntry._ID);
+        int columnIdIndex = cursor.getColumnIndex(BaseColumns._ID);
         long cursorId = -1;
 
         do{

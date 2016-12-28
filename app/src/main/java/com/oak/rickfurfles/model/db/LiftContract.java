@@ -43,6 +43,9 @@ public class LiftContract {
     public static final String PATH_SHIFT_SUM = "sum";
     public static final String PATH_SHIFT_WITH_SUM = "withSum";
 
+    //ToDo: After test merge with Lift
+    public static final String PATH_LIFT_WITH_ADDR = "withAddress";
+
     /*******************
      * Private Methods *
      ******************/
@@ -290,7 +293,7 @@ public class LiftContract {
         // It stores the Address's foreign key
         public static final String COLUMN_ADDR_ID = "ADDR_ID";
 
-        // It stores the Address type [HOP_ON/HOP_OUT]
+        // It stores the Address type [HOP_ON/HOP_OFF]
         public static final String COLUMN_TYPE = "TYPE";
 
         // It stores the Address number

@@ -2,13 +2,13 @@ package com.oak.rickfurfles.model;
 
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 
 import com.oak.rickfurfles.model.db.LiftContract;
@@ -29,68 +29,138 @@ public class LiftProvider extends ContentProvider {
      * Constants *
      ************/
     private static final UriMatcher uriMatcher = buildUriMatcher();
+    private static final String LIFT_ADDR_ORIG_TYPE = "HOP_ON";
+    private static final String LIFT_ADDR_DEST_TYPE = "HOP_OFF";
 
-    /*******
-     * URI *
-     ******/
-    private static final int ADDRESS = 100;
-    private static final int EXPENSE = 200;
-    private static final int EXPENSE_BY_SHIFT = 201;
-    private static final int LIFT = 300;
-    private static final int LIFT_BY_SHIFT = 301;
-    private static final int LIFT_ADDR = 400;
-    private static final int LIFT_ADDR_BY_LIFT = 401;
-    private static final int LIFT_ADDR_BY_LIFT_AND_TYPE = 402;
-    private static final int SHIFT = 500;
-    private static final int SHIFT_BY_PERIOD = 501;
-    private static final int SHIFT_BY_PERIOD_WITH_SUM = 502;
-    private static final int SHIFT_BY_PERIOD_SUM = 503;
-    private static final int SHIFT_SUM = 504;
+    /***************
+     * Projections *
+     **************/
+    private static final String[] LIFT_PROJECTION = new String[]{
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry._ID,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_START_DT,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_PRICE,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_PASSENGERS_NUM,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_END_DT,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry._ID
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry._ID,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_TYPE,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_LAT
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_LAT,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_LON
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_LON,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_NUM
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_NUM,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_POI
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_POI,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry._ID
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry._ID,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_CITY
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_CITY,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_COUNTRY
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_COUNTRY,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_PLACE
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_PLACE,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_STATE
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_STATE,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_ZIPCODE
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_ZIPCODE,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry._ID
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry._ID,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_TYPE,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_LAT
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_LAT,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_LON
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_LON,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_NUM
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_NUM,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_POI
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_POI,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry._ID
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry._ID,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_CITY
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_CITY,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_COUNTRY
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_COUNTRY,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_NEIGHBORHOOD,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_PLACE
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_PLACE,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_STATE
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_STATE,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_ZIPCODE
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_ZIPCODE
+    };
+
+    private static final String[] LIFT_BY_SHIFT_PROJECTION = new String[]{
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry._ID,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_START_DT,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_PRICE,
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_PASSENGERS_NUM,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry._ID
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry._ID,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_TYPE,
+            LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_POI
+                    + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_POI,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry._ID
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry._ID,
+            LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry.COLUMN_PLACE
+                    + " AS " + LiftProvider.ADDR_ORIG_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_PLACE,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry._ID
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry._ID,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_TYPE,
+            LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_POI
+                    + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "_" + LiftContract.LiftAddressEntry.COLUMN_POI,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry._ID
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry._ID,
+            LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry.COLUMN_PLACE
+                    + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_PLACE
+    };
+
+    private static final String[] SHIFT_WITH_SUM_PROJECTION =
+            new String[]{LiftContract.ShiftEntry.TABLE_NAME + ".*",
+                    "sum(" + LiftContract.LiftEntry.TABLE_NAME
+                            + "." + LiftContract.LiftEntry.COLUMN_PRICE + ") "
+                            + "AS " + LiftContract.LiftEntry.FUNCTION_SUM_PRICE,
+                    "count(*) AS " + LiftContract.LiftEntry.FUNCTION_COUNT_LIFT};
 
     /**************
      * Selections *
      *************/
     private static final String EXPENSE_BY_SHIFT_SELECTION =
             LiftContract.ExpenseEntry.TABLE_NAME + "."
-            + LiftContract.ExpenseEntry.COLUMN_SHIFT_ID + " = ?";
+                    + LiftContract.ExpenseEntry.COLUMN_SHIFT_ID + " = ?";
+
+    private static final String LIFT_BY_ID_SELECTION =
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry._ID + " = ?";
 
     private static final String LIFT_BY_SHIFT_SELECTION =
             LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID + " = ?";
 
     private static final String LIFT_ADDR_BY_LIFT_SELECTION =
             LiftContract.LiftAddressEntry.TABLE_NAME + "."
-            + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " = ?";
+                    + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " = ?";
 
     private static final String LIFT_ADDR_BY_LIFT_AND_TYPE_SELECTION =
             LiftContract.LiftAddressEntry.TABLE_NAME + "."
-            + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " = ? AND "
-            + LiftContract.LiftAddressEntry.TABLE_NAME + "."
-            + LiftContract.LiftAddressEntry.COLUMN_TYPE + " = ?";
+                    + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID + " = ? AND "
+                    + LiftContract.LiftAddressEntry.TABLE_NAME + "."
+                    + LiftContract.LiftAddressEntry.COLUMN_TYPE + " = ?";
 
     private static final String SHIFT_BY_ID_SELECTION =
             LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = ?";
 
     private static final String SHIFT_BY_PERIOD_SELECTION =
             LiftContract.ShiftEntry.TABLE_NAME + "."
-            + LiftContract.ShiftEntry.COLUMN_START_DT + " >= ? AND "
-            + LiftContract.ShiftEntry.TABLE_NAME + "."
-            + LiftContract.ShiftEntry.COLUMN_END_DT + " <= ?";
-
-    /***************
-     * Projections *
-     **************/
-    private static final String[] SHIFT_BY_PERIOD_WITH_SUM_PROJECTION =
-            new String[]{LiftContract.ShiftEntry.TABLE_NAME + ".*",
-            "sum(" + LiftContract.LiftEntry.TABLE_NAME + "."
-                    + LiftContract.LiftEntry.COLUMN_PRICE + ") "
-                    + "AS " + LiftContract.LiftEntry.FUNCTION_SUM_PRICE,
-            "count(*) AS " + LiftContract.LiftEntry.FUNCTION_COUNT_LIFT};
-
-    private static final String[] SHIFT_SUM_PROJECTION =
-            new String[]{"sum(" + LiftContract.LiftEntry.TABLE_NAME
-                    + "." + LiftContract.LiftEntry.COLUMN_PRICE + ") "
-                    + "AS " + LiftContract.LiftEntry.FUNCTION_SUM_PRICE,
-            "count(*) AS " + LiftContract.LiftEntry.FUNCTION_COUNT_LIFT};
+                    + LiftContract.ShiftEntry.COLUMN_START_DT + " >= ? AND "
+                    + LiftContract.ShiftEntry.TABLE_NAME + "."
+                    + LiftContract.ShiftEntry.COLUMN_END_DT + " <= ?";
 
     /****************************
      * Query Builders for Joins *
@@ -104,11 +174,67 @@ public class LiftProvider extends ContentProvider {
 
         shiftLiftJoinQueryBuilder.setTables(
                 LiftContract.ShiftEntry.TABLE_NAME + " INNER JOIN "
-                + LiftContract.LiftEntry.TABLE_NAME + " ON "
-                + LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = "
-                + LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID
+                        + LiftContract.LiftEntry.TABLE_NAME + " ON "
+                        + LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = "
+                        + LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID
         );
     }
+
+    private static final SQLiteQueryBuilder liftJoinsAddrQueryBuilder;
+
+    static{
+        liftJoinsAddrQueryBuilder = new SQLiteQueryBuilder();
+
+        liftJoinsAddrQueryBuilder.setTables(
+                LiftContract.LiftEntry.TABLE_NAME
+                        + " LEFT JOIN " + LiftContract.LiftAddressEntry.TABLE_NAME
+                            + " AS " + LiftProvider.LIFT_ADDR_ORIG_ALIAS
+                        + " ON " + LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry._ID
+                                + " = " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID
+                            + " AND " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                                + " = '" + LiftProvider.LIFT_ADDR_ORIG_TYPE + "'"
+                        + " LEFT JOIN " + LiftContract.AddressEntry.TABLE_NAME
+                            + " AS " + LiftProvider.ADDR_ORIG_ALIAS
+                        + " ON " + LiftProvider.LIFT_ADDR_ORIG_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_ADDR_ID
+                                + " = " + LiftProvider.ADDR_ORIG_ALIAS + "." + LiftContract.AddressEntry._ID
+                            + " AND " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_TYPE
+                                + " = '" + LiftProvider.LIFT_ADDR_DEST_TYPE + "'"
+                        + " LEFT JOIN " + LiftContract.LiftAddressEntry.TABLE_NAME
+                            + " AS " + LiftProvider.LIFT_ADDR_DEST_ALIAS
+                        + " ON " + LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry._ID
+                                + " = " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_LIFT_ID
+                        + " LEFT JOIN " + LiftContract.AddressEntry.TABLE_NAME
+                            + " AS " + LiftProvider.ADDR_DEST_ALIAS
+                        + " ON " + LiftProvider.LIFT_ADDR_DEST_ALIAS + "." + LiftContract.LiftAddressEntry.COLUMN_ADDR_ID
+                                + " = " + LiftProvider.ADDR_DEST_ALIAS + "." + LiftContract.AddressEntry._ID
+        );
+    }
+
+    /***************
+     * Table Alias *
+     **************/
+    private static final String LIFT_ADDR_ORIG_ALIAS = "LIADO";
+    private static final String ADDR_ORIG_ALIAS = "ADDRO";
+    private static final String LIFT_ADDR_DEST_ALIAS = "LIADD";
+    private static final String ADDR_DEST_ALIAS = "ADDRD";
+
+    /*******
+     * URI *
+     ******/
+    private static final int ADDRESS = 100;
+    private static final int EXPENSE = 200;
+    private static final int EXPENSE_BY_SHIFT = 201;
+    private static final int LIFT = 300;
+    private static final int LIFT_BY_ID = 301;
+    private static final int LIFT_BY_SHIFT = 302;
+    private static final int LIFT_ADDR = 400;
+    private static final int LIFT_ADDR_BY_LIFT = 401;
+    private static final int LIFT_ADDR_BY_LIFT_AND_TYPE = 402;
+    private static final int SHIFT = 500;
+    private static final int SHIFT_BY_ID = 501;
+    private static final int SHIFT_BY_PERIOD = 502;
+    private static final int SHIFT_BY_PERIOD_WITH_SUM = 503;
+    private static final int SHIFT_BY_PERIOD_SUM = 504;
 
     /*************
      * Variables *
@@ -182,6 +308,8 @@ public class LiftProvider extends ContentProvider {
                 return LiftContract.ExpenseEntry.CONTENT_TYPE;
             case LIFT:
                 return LiftContract.LiftEntry.CONTENT_TYPE;
+            case LIFT_BY_ID:
+                return LiftContract.LiftEntry.CONTENT_ITEM_TYPE;
             case LIFT_BY_SHIFT:
                 return LiftContract.LiftEntry.CONTENT_TYPE;
             case LIFT_ADDR:
@@ -192,14 +320,14 @@ public class LiftProvider extends ContentProvider {
                 return LiftContract.LiftAddressEntry.CONTENT_ITEM_TYPE;
             case SHIFT:
                 return LiftContract.ShiftEntry.CONTENT_TYPE;
+            case SHIFT_BY_ID:
+                return LiftContract.ShiftEntry.CONTENT_ITEM_TYPE;
             case SHIFT_BY_PERIOD:
                 return LiftContract.ShiftEntry.CONTENT_TYPE;
             case SHIFT_BY_PERIOD_SUM:
                 return LiftContract.ShiftEntry.CONTENT_ITEM_TYPE;
             case SHIFT_BY_PERIOD_WITH_SUM:
                 return LiftContract.ShiftEntry.CONTENT_TYPE;
-            case SHIFT_SUM:
-                return LiftContract.ShiftEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown URI: " + uri);
         }
@@ -231,7 +359,7 @@ public class LiftProvider extends ContentProvider {
                         contentValues);
 
                 if(id > 0)
-                        returnUri = LiftContract.AddressEntry.buildAddressUri(id);
+                    returnUri = LiftContract.AddressEntry.buildAddressUri(id);
 
                 break;
             case LIFT:
@@ -305,13 +433,24 @@ public class LiftProvider extends ContentProvider {
 
                 break;
             case LIFT:
-                tableName = LiftContract.LiftEntry.TABLE_NAME;
+                if(projection == null)
+                    projection = LiftProvider.LIFT_PROJECTION;
+
+                break;
+            case LIFT_BY_ID:
+                if(projection == null)
+                    projection = LiftProvider.LIFT_PROJECTION;
+
+                selection = LiftProvider.LIFT_BY_ID_SELECTION;
+                selectionArgs = getLiftByIdSelectionArgs(uri);
 
                 break;
             case LIFT_BY_SHIFT:
-                tableName = LiftContract.LiftEntry.TABLE_NAME;
+                if(projection == null)
+                    projection = LiftProvider.LIFT_BY_SHIFT_PROJECTION;
+
                 selection = LIFT_BY_SHIFT_SELECTION;
-                selectionArgs = getLiftByIdSelectionArgs(uri);
+                selectionArgs = getLiftByShiftSelectionArgs(uri);
 
                 break;
             case LIFT_ADDR:
@@ -334,6 +473,12 @@ public class LiftProvider extends ContentProvider {
                 tableName = LiftContract.ShiftEntry.TABLE_NAME;
 
                 break;
+            case SHIFT_BY_ID:
+                projection = SHIFT_WITH_SUM_PROJECTION;
+                selection = SHIFT_BY_ID_SELECTION;
+                selectionArgs = this.getShiftByIdSelectionArgs(uri);
+
+                break;
             case SHIFT_BY_PERIOD:
                 tableName = LiftContract.ShiftEntry.TABLE_NAME;
                 selection = SHIFT_BY_PERIOD_SELECTION;
@@ -341,22 +486,16 @@ public class LiftProvider extends ContentProvider {
 
                 break;
             case SHIFT_BY_PERIOD_WITH_SUM:
-                projection = SHIFT_BY_PERIOD_WITH_SUM_PROJECTION;
+                projection = SHIFT_WITH_SUM_PROJECTION;
                 selection = SHIFT_BY_PERIOD_SELECTION;
                 selectionArgs = this.getShiftByPeriodSelectionArgs(uri);
                 groupBy = LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID;
 
                 break;
             case SHIFT_BY_PERIOD_SUM:
-                projection = SHIFT_SUM_PROJECTION;
+                projection = SHIFT_WITH_SUM_PROJECTION;
                 selection = SHIFT_BY_PERIOD_SELECTION;
                 selectionArgs = getShiftByPeriodSelectionArgs(uri);
-
-                break;
-            case SHIFT_SUM:
-                projection = SHIFT_SUM_PROJECTION;
-                selection = SHIFT_BY_ID_SELECTION;
-                selectionArgs = getShiftByIdSelectionArgs(uri);
 
                 break;
             default:
@@ -368,8 +507,6 @@ public class LiftProvider extends ContentProvider {
             case ADDRESS:
             case EXPENSE:
             case EXPENSE_BY_SHIFT:
-            case LIFT:
-            case LIFT_BY_SHIFT:
             case LIFT_ADDR:
             case LIFT_ADDR_BY_LIFT:
             case LIFT_ADDR_BY_LIFT_AND_TYPE:
@@ -385,9 +522,21 @@ public class LiftProvider extends ContentProvider {
                         sortOrder);
 
                 break;
+            case LIFT:
+            case LIFT_BY_ID:
+            case LIFT_BY_SHIFT:
+                returnCursor = liftJoinsAddrQueryBuilder.query(liftDbHelper.getReadableDatabase(),
+                        projection,
+                        selection,
+                        selectionArgs,
+                        groupBy,
+                        null,
+                        sortOrder);
+
+                break;
+            case SHIFT_BY_ID:
             case SHIFT_BY_PERIOD_WITH_SUM:
             case SHIFT_BY_PERIOD_SUM:
-            case SHIFT_SUM:
                 // It executes Shift-Lift join queries
                 returnCursor = shiftLiftJoinQueryBuilder.query(liftDbHelper.getReadableDatabase(),
                         projection,
@@ -491,6 +640,10 @@ public class LiftProvider extends ContentProvider {
                 LIFT);
 
         uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
+                LiftContract.PATH_LIFT + "/#",
+                LIFT_BY_ID);
+
+        uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
                 LiftContract.PATH_LIFT
                         + "/" + LiftContract.PATH_SHIFT + "/#",
                 LIFT_BY_SHIFT);
@@ -517,6 +670,10 @@ public class LiftProvider extends ContentProvider {
                 SHIFT);
 
         uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
+                LiftContract.PATH_SHIFT + "/#",
+                LiftProvider.SHIFT_BY_ID);
+
+        uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
                 LiftContract.PATH_SHIFT
                         + "/" + LiftContract.PATH_SHIFT_PERIOD + "/#/#",
                 SHIFT_BY_PERIOD);
@@ -533,11 +690,6 @@ public class LiftProvider extends ContentProvider {
                         + "/" + LiftContract.PATH_SHIFT_WITH_SUM,
                 SHIFT_BY_PERIOD_WITH_SUM);
 
-        uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
-                LiftContract.PATH_SHIFT
-                        + "/#/" + LiftContract.PATH_SHIFT_SUM,
-                SHIFT_SUM);
-
         return uriMatcher;
     }
 
@@ -550,6 +702,14 @@ public class LiftProvider extends ContentProvider {
     }
 
     private String[] getLiftByIdSelectionArgs(Uri uri){
+        long liftId = ContentUris.parseId(uri);
+
+        String[] selectionArgs = new String[]{Long.toString(liftId)};
+
+        return selectionArgs;
+    }
+
+    private String[] getLiftByShiftSelectionArgs(Uri uri){
         long shiftId = LiftContract.LiftEntry.getShiftIdFromUri(uri);
 
         String[] selectionArgs = new String[]{Long.toString(shiftId)};

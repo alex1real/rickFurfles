@@ -83,6 +83,14 @@ public class TestProvider {
                 LiftContract.LiftEntry.CONTENT_TYPE,
                 type);
 
+        // Lift By Id
+        type = appContext.getContentResolver().getType(LiftContract.LiftEntry.buildLiftUri(1l));
+
+        Assert.assertEquals("Error: LiftEntry.buildShiftUri should return LftEntry.CONTENT_ITEM_TYPE",
+                LiftContract.LiftEntry.CONTENT_ITEM_TYPE,
+                type);
+
+        // Lift by Shift
         type = appContext.getContentResolver().getType(LiftContract.LiftEntry.buildLiftByShiftUri(shiftId));
 
         Assert.assertEquals("Error: LiftEntry.buildLiftByShiftUri should return Lift.CONTENT_TYPE",
@@ -120,6 +128,13 @@ public class TestProvider {
                 LiftContract.ShiftEntry.CONTENT_TYPE,
                 type);
 
+        // Shift By Id
+        type = appContext.getContentResolver().getType(LiftContract.ShiftEntry.buildShiftUri(1l));
+
+        Assert.assertEquals("Error: ShiftEntry.buildShiftUri should return ShiftEntry.CONTENT_ITEM_TYPE",
+                LiftContract.ShiftEntry.CONTENT_ITEM_TYPE,
+                type);
+
         // Shift By Period
         GregorianCalendar startDate = new GregorianCalendar();
         startDate.add(Calendar.DAY_OF_YEAR, -5);
@@ -144,15 +159,6 @@ public class TestProvider {
 
         Assert.assertEquals("Error: ShiftEntry.buildShiftPeriodWithSumUri shour return ShiftEntry.CONTENT_TYPE",
                 LiftContract.ShiftEntry.CONTENT_TYPE,
-                type);
-        
-        // Shift Sum
-        type = appContext.getContentResolver().getType(LiftContract.ShiftEntry.buildShiftSumUri(shiftId));
-
-        Log.v(LOG_TAG, "LiftContract.ShiftEntry.buildShiftFromUri(1): " + LiftContract.ShiftEntry.buildShiftSumUri(1).toString());
-
-        Assert.assertEquals("Error: ShiftEntry.buildShiftSumUri should return ShiftEntry.CONTENT_ITEM_TYPE",
-                LiftContract.ShiftEntry.CONTENT_ITEM_TYPE,
                 type);
     }
 
@@ -383,7 +389,7 @@ public class TestProvider {
         int numAffectedRows = appContext.getContentResolver().update(LiftContract.ExpenseEntry.CONTENT_URI,
                 updatedExpense2Values,
                 LiftContract.ExpenseEntry.TABLE_NAME + "."
-                + LiftContract.ExpenseEntry._ID + " = ?",
+                        + LiftContract.ExpenseEntry._ID + " = ?",
                 new String[]{Long.toString(expenseId2)});
 
         // Check if the ContentObserver has been notified
@@ -396,7 +402,7 @@ public class TestProvider {
                 1, numAffectedRows);
 
         cursor = appContext.getContentResolver().query(expenseByShiftUri,
-                 null, null, null, null);
+                null, null, null, null);
 
         Assert.assertTrue("Error: Fail to update Expense 2. Changes weren't refelcted into db.",
                 TestUtilities.isValidCursor(cursor, updatedExpense2Values));
@@ -412,7 +418,7 @@ public class TestProvider {
         // Delete Expense
         numAffectedRows = appContext.getContentResolver().delete(LiftContract.ExpenseEntry.CONTENT_URI,
                 LiftContract.ExpenseEntry.TABLE_NAME + "."
-                + LiftContract.ExpenseEntry._ID + " = ?",
+                        + LiftContract.ExpenseEntry._ID + " = ?",
                 new String[]{Long.toString(expenseId2)});
 
         // Check if the ContentObserver has been called
@@ -458,10 +464,14 @@ public class TestProvider {
                 true,
                 tco);
 
+        Log.d(LOG_TAG, "Lift's for insert URI: " + LiftContract.LiftEntry.CONTENT_URI.toString());
+
         // Insert Lift
         ContentValues liftValues1 = TestDb.getLiftValuesSample1(shiftId1);
         Uri liftUri1 = appContext.getContentResolver().insert(LiftContract.LiftEntry.CONTENT_URI,
                 liftValues1);
+
+        Log.d(LOG_TAG, "Lift's insert return URI: " + liftUri1.toString());
 
         // Check if the ContentObserver has been called
         tco.waitForNotificationOrFail();
@@ -537,17 +547,25 @@ public class TestProvider {
 
         cursor.close();
 
+        // Query Lift by Id
+        Uri liftByIdUri = LiftContract.LiftEntry.buildLiftUri(liftId2);
+
+        cursor = appContext.getContentResolver().query(liftByIdUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Unexpected number of records returned for Lift by Id (Lift 2) query",
+                1, cursor.getCount());
+
+        Assert.assertTrue("Error: Lift 2 is not present into Lift by Id cursor.",
+                TestUtilities.isValidCursor(cursor, liftValues2));
+
+        cursor.close();
+
         // Query Lift by Shift
         Uri liftByShiftUri = LiftContract.LiftEntry.buildLiftByShiftUri(shiftId1);
 
         cursor = appContext.getContentResolver().query(liftByShiftUri,
                 null, null, null, null);
-
-        Assert.assertTrue("Error: Lift 1 is not present into cursor for Shift 1.",
-                TestUtilities.isValidCursor(cursor, liftValues1));
-
-        Assert.assertTrue("Error: Lift 2 is not present into cursor for Shift 1.",
-                TestUtilities.isValidCursor(cursor, liftValues2));
 
         Assert.assertEquals("Error: Unexpected number of records returned for Lift by Shift 1 query.",
                 2, cursor.getCount());
@@ -737,7 +755,7 @@ public class TestProvider {
                 null, null, null, null);
 
         Assert.assertEquals("Error: Query LiftAddress by Lift has been failed." +
-                " Unexpected amount of records returned.",
+                        " Unexpected amount of records returned.",
                 2, cursor.getCount());
 
         Assert.assertTrue("Error: LiftAddress 3 is not present in Cursor LiftAddress by Lift.",
@@ -756,7 +774,7 @@ public class TestProvider {
                 null, null, null, null);
 
         Assert.assertEquals("Error: Fail to query LiftAddress by Lift and Type." +
-                " Unexpected amount of records returned.",
+                        " Unexpected amount of records returned.",
                 1, cursor.getCount());
 
         Assert.assertTrue("Error: LiftAddress 1 is not present in Cursor LiftAddress by Lift and Type.",
@@ -949,7 +967,7 @@ public class TestProvider {
                 updatedShift1Values,
                 LiftContract.ShiftEntry._ID + " = ?",
                 new String[]{Long.toString(shift1Id)}
-                );
+        );
 
         // Check if the insertion has been made
         Assert.assertEquals("Error: Problems to update Shift 1", 1, numAffectedRows);
@@ -1074,29 +1092,6 @@ public class TestProvider {
 
         cursor.close();
 
-        // Shift Sum
-        Uri shiftSumUri = LiftContract.ShiftEntry.buildShiftSumUri(shiftId1);
-
-        cursor = appContext.getContentResolver().query(shiftSumUri,
-                null, null, null, null);
-
-        sumPriceIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
-        countLiftIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
-
-        cursor.moveToFirst();
-
-        expectedSumPrice = TestDb.getLiftValuesSample1(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE)
-                + TestDb.getLiftValuesSample2(shiftId1).getAsDouble(LiftContract.LiftEntry.COLUMN_PRICE);
-        returnedSumPrice = cursor.getDouble(sumPriceIndex);
-
-        Assert.assertEquals("Error: Unexpected sum(price).", expectedSumPrice, returnedSumPrice);
-
-        countLift = cursor.getInt(countLiftIndex);
-
-        Assert.assertEquals("Error: Unexpected Lifts count().", 2, countLift);
-
-        cursor.close();
-
         // Shift by Period With Sum
         Uri shiftPeriodWithSumUri = LiftContract.ShiftEntry.buildShiftPeriodWithSumUri(startDate, endDate);
 
@@ -1139,13 +1134,13 @@ public class TestProvider {
             }
 
             Assert.assertEquals("Error: Fail to query Shift by Period with Sum. Unexpected sum returned for Shift " +
-                    shiftNum + ".",
+                            shiftNum + ".",
                     expectedSumPrice, returnedSumPrice);
 
             countLift = cursor.getInt(countLiftIndex);
 
             Assert.assertEquals("Error: Fail to query Shift by Period with Sum. Unexpected count returned for Shift " +
-                    + shiftNum + ".",
+                            + shiftNum + ".",
                     2, countLift);
 
         }while(cursor.moveToNext());
@@ -1286,6 +1281,47 @@ public class TestProvider {
         return this.insertLift(liftValues);
     }
 
+    private long insertLiftAddress(ContentValues liftAddressValues){
+        Uri liftAddressUri = appContext.getContentResolver().insert(LiftContract.LiftAddressEntry.CONTENT_URI,
+                liftAddressValues);
+
+        long liftAddressId = ContentUris.parseId(liftAddressUri);
+        Log.v(LOG_TAG, "LiftAddress Id: " + liftAddressId);
+
+        Assert.assertTrue("Error: Fail to insert LiftAddress. Unexpected id returned",
+                liftAddressId > 0);
+
+        return liftAddressId;
+    }
+
+    private long insertLiftAddressSample1(long liftId,
+                                          long addressId){
+        ContentValues liftAddressValues = TestDb.getLiftAddressValuesSample1(liftId, addressId);
+
+        return this.insertLiftAddress(liftAddressValues);
+    }
+
+    private long insertLiftAddressSample2(long liftId,
+                                          long addressId){
+        ContentValues liftAddressValues = TestDb.getLiftAddressValuesSample2(liftId, addressId);
+
+        return this.insertLiftAddress(liftAddressValues);
+    }
+
+    private long insertLiftAddressSample3(long liftId,
+                                          long addressId){
+        ContentValues liftAddressValues = TestDb.getLiftAddressValuesSample3(liftId, addressId);
+
+        return this.insertLiftAddress(liftAddressValues);
+    }
+
+    private long insertLiftAddressSample4(long liftId,
+                                          long addressId){
+        ContentValues liftAddressValues = TestDb.getLiftAddressValuesSample4(liftId, addressId);
+
+        return this.insertLiftAddress(liftAddressValues);
+    }
+
     private long insertShift(ContentValues shiftValues){
         Uri shiftUri = appContext.getContentResolver().insert(LiftContract.ShiftEntry.CONTENT_URI,
                 shiftValues);
@@ -1293,7 +1329,7 @@ public class TestProvider {
         long shiftId = ContentUris.parseId(shiftUri);
         Log.v(LOG_TAG, "Shift Id: " + shiftId);
 
-        Assert.assertTrue("Error: Fail to insert Shift 1. Unexpected id returned.",
+        Assert.assertTrue("Error: Fail to insert Shift. Unexpected id returned.",
                 shiftId > 0);
 
         return shiftId;
