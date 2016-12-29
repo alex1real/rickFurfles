@@ -173,7 +173,7 @@ public class LiftProvider extends ContentProvider {
         shiftLiftJoinQueryBuilder = new SQLiteQueryBuilder();
 
         shiftLiftJoinQueryBuilder.setTables(
-                LiftContract.ShiftEntry.TABLE_NAME + " INNER JOIN "
+                LiftContract.ShiftEntry.TABLE_NAME + " LEFT JOIN "
                         + LiftContract.LiftEntry.TABLE_NAME + " ON "
                         + LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID + " = "
                         + LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID

@@ -1,22 +1,161 @@
 package com.oak.rickfurfles;
 
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.oak.rickfurfles.model.db.LiftContract;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ShiftActivityFragment extends Fragment {
+public class ShiftActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    /*********************
+     * Private Constants *
+     ********************/
+    private static final int SHIFT_LOADER_ID = 0;
+    private static final int LIFT_LOADER_ID = 1;
+
+    /*********************
+     * Private Variables *
+     ********************/
+    private Uri uri;
+
+    /****************
+     * Constructors *
+     ***************/
     public ShiftActivityFragment() {
+    }
+
+    /***********************
+     * Fragment Overriders *
+     **********************/
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState){
+        getLoaderManager().initLoader(SHIFT_LOADER_ID, null, this);
+
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        this.uri = getActivity().getIntent().getData();
+
+        super.onCreate(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_shift, container, false);
+    }
+
+    /********************************************
+     * LoaderManager.LoaderCallbacks Overriders *
+     *******************************************/
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        switch(id){
+            case SHIFT_LOADER_ID:
+
+                if(this.uri != null){
+                    return new CursorLoader(getActivity(),
+                            this.uri,
+                            null, null, null, null);
+                }
+
+                break;
+            case LIFT_LOADER_ID:
+                // ToDo: Implement Lift Loader.onCreateLoader
+                break;
+        }
+
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+
+        int loaderId = loader.getId();
+
+        switch(loaderId){
+            case SHIFT_LOADER_ID:
+
+                this.populateShiftViews(cursor);
+
+                break;
+            case LIFT_LOADER_ID:
+                // ToDo: Implement Lift Loader.onLoadFinished
+                break;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    /*******************
+     * Private Methods *
+     ******************/
+    private void populateShiftViews(Cursor cursor){
+        cursor.moveToFirst();
+
+        // Get the root view for Fragment's layout
+        View rootView = getView();
+
+        // Start Date
+        int columnIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.COLUMN_START_DT);
+        long startDateInMillis = cursor.getLong(columnIndex);
+        // ToDo: Change for a cleaner formatting solution
+        SimpleDateFormat sdf;
+        if(startDateInMillis != 0) {
+            Calendar startDate = new GregorianCalendar();
+            startDate.setTimeInMillis(startDateInMillis);
+            sdf = new SimpleDateFormat("EEEE dd MMM YYYY HH:mm");
+            TextView startDateView = (TextView) rootView.findViewById(R.id.shift_full_start_date_tv);
+            startDateView.setText(sdf.format(startDate.getTime()));
+        }
+
+        // End Date
+        columnIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.COLUMN_END_DT);
+        long endDateInMillis = cursor.getLong(columnIndex);
+        // ToDo: Change for a cleaner formatting solution
+        if(endDateInMillis != 0) {
+            Calendar endDate = new GregorianCalendar();
+            endDate.setTimeInMillis(endDateInMillis);
+            sdf = new SimpleDateFormat(" - HH:mm");
+            TextView endDateView = (TextView) rootView.findViewById(R.id.shift_end_time_tv);
+            endDateView.setText(sdf.format(endDate.getTime()));
+        }
+
+        // Lift count()
+        columnIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
+        int liftCount = cursor.getInt(columnIndex);
+        TextView liftCountView = (TextView)rootView.findViewById(R.id.shift_lifts_tv);
+        liftCountView.setText(Integer.toString(liftCount));
+
+        // Balance (Lift sum())
+        columnIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
+        double balance = cursor.getDouble(columnIndex);
+        TextView balanceView = (TextView)rootView.findViewById(R.id.shift_balance_tv);
+        // ToDo: Format the balance
+        balanceView.setText(Double.toString(balance));
     }
 }
