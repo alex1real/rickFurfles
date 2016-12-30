@@ -1,5 +1,6 @@
 package com.oak.rickfurfles;
 
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -29,7 +30,21 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
      * Private Constants *
      ********************/
     private static final int SHIFT_LOADER_ID = 0;
-    private static final int LIFT_LOADER_ID = 1;
+    private static final int LIFT_SUM_LOADER_ID = 1;
+    private static final int LIFT_LOADER_ID = 2;
+
+    // Projections
+    // Shift by Id Projection
+    private static final String[] SHIFT_BY_ID_PROJECTION = new String[]{
+            LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry._ID,
+            LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry.COLUMN_START_DT,
+            LiftContract.ShiftEntry.TABLE_NAME + "." + LiftContract.ShiftEntry.COLUMN_END_DT
+    };
+
+    // Shift by Id Projection Indexes
+    private static final int COL_SHIFT_ID = 0;
+    private static final int COL_SHIFT_START_DT = 1;
+    private static final int COL_SHIFT_END_DT = 2;
 
     /*********************
      * Private Variables *
@@ -47,7 +62,9 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
      **********************/
     @Override
     public void onActivityCreated(Bundle savedInstanceState){
-        getLoaderManager().initLoader(SHIFT_LOADER_ID, null, this);
+        LoaderManager lm = getLoaderManager();
+        lm.initLoader(SHIFT_LOADER_ID, null, this);
+        lm.initLoader(LIFT_SUM_LOADER_ID, null, this);
 
         super.onActivityCreated(savedInstanceState);
     }
@@ -73,10 +90,20 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
 
         switch(id){
             case SHIFT_LOADER_ID:
-
                 if(this.uri != null){
                     return new CursorLoader(getActivity(),
                             this.uri,
+                            ShiftActivityFragment.SHIFT_BY_ID_PROJECTION, null, null, null);
+                }
+
+                break;
+            case LIFT_SUM_LOADER_ID:
+                if(uri != null){
+                    long shiftId = ContentUris.parseId(uri);
+                    Uri liftByShiftSumUri = LiftContract.LiftEntry.buildLiftByShiftSumUri(shiftId);
+
+                    return new CursorLoader(getActivity(),
+                            liftByShiftSumUri,
                             null, null, null, null);
                 }
 
@@ -96,8 +123,11 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
 
         switch(loaderId){
             case SHIFT_LOADER_ID:
-
                 this.populateShiftViews(cursor);
+
+                break;
+            case LIFT_SUM_LOADER_ID:
+                this.populateLiftSumViews(cursor);
 
                 break;
             case LIFT_LOADER_ID:
@@ -121,8 +151,7 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
         View rootView = getView();
 
         // Start Date
-        int columnIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.COLUMN_START_DT);
-        long startDateInMillis = cursor.getLong(columnIndex);
+        long startDateInMillis = cursor.getLong(COL_SHIFT_START_DT);
         // ToDo: Change for a cleaner formatting solution
         SimpleDateFormat sdf;
         if(startDateInMillis != 0) {
@@ -134,8 +163,7 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
         }
 
         // End Date
-        columnIndex = cursor.getColumnIndex(LiftContract.ShiftEntry.COLUMN_END_DT);
-        long endDateInMillis = cursor.getLong(columnIndex);
+        long endDateInMillis = cursor.getLong(COL_SHIFT_END_DT);
         // ToDo: Change for a cleaner formatting solution
         if(endDateInMillis != 0) {
             Calendar endDate = new GregorianCalendar();
@@ -144,9 +172,16 @@ public class ShiftActivityFragment extends Fragment implements LoaderManager.Loa
             TextView endDateView = (TextView) rootView.findViewById(R.id.shift_end_time_tv);
             endDateView.setText(sdf.format(endDate.getTime()));
         }
+    }
+
+    public void populateLiftSumViews(Cursor cursor){
+        cursor.moveToFirst();
+
+        // Get the root view for Fragment's layout
+        View rootView = getView();
 
         // Lift count()
-        columnIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
+        int columnIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
         int liftCount = cursor.getInt(columnIndex);
         TextView liftCountView = (TextView)rootView.findViewById(R.id.shift_lifts_tv);
         liftCountView.setText(Integer.toString(liftCount));

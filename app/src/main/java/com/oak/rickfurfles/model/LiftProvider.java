@@ -123,6 +123,14 @@ public class LiftProvider extends ContentProvider {
                     + " AS " + LiftProvider.ADDR_DEST_ALIAS + "_" + LiftContract.AddressEntry.COLUMN_PLACE
     };
 
+    private static final String[] LIFT_BY_SHIFT_SUM_PROJECTION = new String[]{
+            LiftContract.LiftEntry.TABLE_NAME + "." + LiftContract.LiftEntry.COLUMN_SHIFT_ID,
+            "sum(" + LiftContract.LiftEntry.TABLE_NAME
+                    + "." + LiftContract.LiftEntry.COLUMN_PRICE + ") "
+                    + "AS " + LiftContract.LiftEntry.FUNCTION_SUM_PRICE,
+            "count(*) AS " + LiftContract.LiftEntry.FUNCTION_COUNT_LIFT
+    };
+
     private static final String[] SHIFT_WITH_SUM_PROJECTION =
             new String[]{LiftContract.ShiftEntry.TABLE_NAME + ".*",
                     "sum(" + LiftContract.LiftEntry.TABLE_NAME
@@ -227,6 +235,7 @@ public class LiftProvider extends ContentProvider {
     private static final int LIFT = 300;
     private static final int LIFT_BY_ID = 301;
     private static final int LIFT_BY_SHIFT = 302;
+    private static final int LIFT_BY_SHIFT_SUM = 303;
     private static final int LIFT_ADDR = 400;
     private static final int LIFT_ADDR_BY_LIFT = 401;
     private static final int LIFT_ADDR_BY_LIFT_AND_TYPE = 402;
@@ -312,6 +321,8 @@ public class LiftProvider extends ContentProvider {
                 return LiftContract.LiftEntry.CONTENT_ITEM_TYPE;
             case LIFT_BY_SHIFT:
                 return LiftContract.LiftEntry.CONTENT_TYPE;
+            case LIFT_BY_SHIFT_SUM:
+                return LiftContract.LiftEntry.CONTENT_ITEM_TYPE;
             case LIFT_ADDR:
                 return LiftContract.LiftAddressEntry.CONTENT_TYPE;
             case LIFT_ADDR_BY_LIFT:
@@ -453,6 +464,13 @@ public class LiftProvider extends ContentProvider {
                 selectionArgs = getLiftByShiftSelectionArgs(uri);
 
                 break;
+            case LIFT_BY_SHIFT_SUM:
+                tableName = LiftContract.LiftEntry.TABLE_NAME;
+                projection = LiftProvider.LIFT_BY_SHIFT_SUM_PROJECTION;
+                selection = LIFT_BY_SHIFT_SELECTION;
+                selectionArgs = getLiftByShiftSelectionArgs(uri);
+
+                break;
             case LIFT_ADDR:
                 tableName = LiftContract.LiftAddressEntry.TABLE_NAME;
 
@@ -474,7 +492,7 @@ public class LiftProvider extends ContentProvider {
 
                 break;
             case SHIFT_BY_ID:
-                projection = SHIFT_WITH_SUM_PROJECTION;
+                tableName = LiftContract.ShiftEntry.TABLE_NAME;
                 selection = SHIFT_BY_ID_SELECTION;
                 selectionArgs = this.getShiftByIdSelectionArgs(uri);
 
@@ -507,10 +525,12 @@ public class LiftProvider extends ContentProvider {
             case ADDRESS:
             case EXPENSE:
             case EXPENSE_BY_SHIFT:
+            case LIFT_BY_SHIFT_SUM:
             case LIFT_ADDR:
             case LIFT_ADDR_BY_LIFT:
             case LIFT_ADDR_BY_LIFT_AND_TYPE:
             case SHIFT:
+            case SHIFT_BY_ID:
             case SHIFT_BY_PERIOD:
                 // It executes non join queries
                 returnCursor = sqLiteDatabase.query(tableName,
@@ -534,7 +554,6 @@ public class LiftProvider extends ContentProvider {
                         sortOrder);
 
                 break;
-            case SHIFT_BY_ID:
             case SHIFT_BY_PERIOD_WITH_SUM:
             case SHIFT_BY_PERIOD_SUM:
                 // It executes Shift-Lift join queries
@@ -647,6 +666,12 @@ public class LiftProvider extends ContentProvider {
                 LiftContract.PATH_LIFT
                         + "/" + LiftContract.PATH_SHIFT + "/#",
                 LIFT_BY_SHIFT);
+
+        uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,
+                LiftContract.PATH_LIFT
+                        + "/" + LiftContract.PATH_SHIFT + "/#"
+                        + "/" + LiftContract.PATH_LIFT_SUM,
+                LIFT_BY_SHIFT_SUM);
 
         // Lift Address
         uriMatcher.addURI(LiftContract.CONTENT_AUTHORITY,

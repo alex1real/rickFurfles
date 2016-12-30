@@ -38,6 +38,7 @@ public class LiftContract {
     public static final String PATH_LIFT = "lift";
     public static final String PATH_LIFT_ADDR = "liftAddress";
     public static final String PATH_LIFT_ADDR_TYPE = "type";
+    public static final String PATH_LIFT_SUM = "sum";
     public static final String PATH_SHIFT = "shift";
     public static final String PATH_SHIFT_PERIOD = "period";
     public static final String PATH_SHIFT_SUM = "sum";
@@ -252,6 +253,13 @@ public class LiftContract {
                     .build();
         }
 
+        public static Uri buildLiftByShiftSumUri(long shiftId){
+            return CONTENT_URI.buildUpon()
+                    .appendPath(PATH_SHIFT).appendPath(Long.toString(shiftId))
+                    .appendPath(PATH_LIFT_SUM)
+                    .build();
+        }
+
         /***************
          * URI Getters *
          **************/
@@ -333,6 +341,7 @@ public class LiftContract {
                     .appendPath(PATH_LIFT_ADDR_TYPE).appendPath(type)
                     .build();
         }
+
         /***************
          * URI Getters *
          **************/

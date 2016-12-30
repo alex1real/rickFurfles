@@ -561,6 +561,59 @@ public class TestProvider {
 
         cursor.close();
 
+        // Query Lift by Shift Sum
+        Uri liftByShiftSumUri = LiftContract.LiftEntry.buildLiftByShiftSumUri(shiftId2);
+
+        cursor = appContext.getContentResolver().query(liftByShiftSumUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Unexpected number of records returned for Lift by Shift Sum query.",
+                1, cursor.getCount());
+
+        cursor.moveToFirst();
+
+        int sumIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_SUM_PRICE);
+        double sumPrice = cursor.getDouble(sumIndex);
+
+        Assert.assertEquals("Error: Unexpected Lift Sum() value.",
+                15.0, sumPrice);
+
+        int countIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
+        int countLift = cursor.getInt(countIndex);
+
+        Assert.assertEquals("Error: Unexpected Lift Count() value",
+                2, countLift);
+
+        cursor.close();
+
+        // Query Lift by Shift Sum (Inexistent shiftId)
+        liftByShiftSumUri = LiftContract.LiftEntry.buildLiftByShiftSumUri(1);
+
+        cursor = appContext.getContentResolver().query(liftByShiftSumUri,
+                null, null, null, null);
+
+        Assert.assertEquals("Error: Unexpected number of records returned for Lift by Shift Sum query.",
+                1, cursor.getCount());
+
+        cursor.moveToFirst();
+
+        int idIndex = cursor.getColumnIndex(LiftContract.LiftEntry.FUNCTION_COUNT_LIFT);
+        long idLift = cursor.getLong(idIndex);
+
+        Assert.assertEquals("Error: Unexpected Lift Count() value",
+                0, idLift);
+
+        sumPrice = cursor.getDouble(sumIndex);
+
+        Assert.assertEquals("Error: Unexpected Lift Sum() value.",
+                0.0, sumPrice);
+
+        countLift = cursor.getInt(countIndex);
+        Assert.assertEquals("Error: Unexpected Lift Count() value",
+                0, countLift);
+
+        cursor.close();
+
         // Query Lift by Shift
         Uri liftByShiftUri = LiftContract.LiftEntry.buildLiftByShiftUri(shiftId1);
 
